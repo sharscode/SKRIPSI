@@ -126,6 +126,7 @@ CREATE TABLE peserta_acara (
     alasan_perubahan  VARCHAR(255)  NULL,
     anggota_id        INT           NOT NULL,
     acara_id          INT           NOT NULL,
+    approved_by       INT           NOT NULL,
     CONSTRAINT peserta_acara_PK PRIMARY KEY CLUSTERED (id),
     CONSTRAINT peserta_acara_UQ UNIQUE (anggota_id, acara_id),
     CONSTRAINT peserta_status_CK CHECK (status_peserta IN ('ikut', 'batal')),
@@ -133,6 +134,8 @@ CREATE TABLE peserta_acara (
     CONSTRAINT peserta_acara_anggota_FK FOREIGN KEY (anggota_id) REFERENCES anggota(id)
         ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT peserta_acara_acara_FK FOREIGN KEY (acara_id) REFERENCES acara(id)
+        ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT peserta_acara_admin_FK FOREIGN KEY (approved_by) REFERENCES admin(id)
         ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 GO
@@ -275,15 +278,15 @@ INSERT INTO latihan (tanggal, jam, lokasi, keterangan, tipe_latihan, waktu_notif
 ('2025-12-15', '18:00:00', 'Petra Performance Hall',    'Gladi bersih full dress',   'sekali', 120, 1, 1);
 GO
 
-INSERT INTO peserta_acara (anggota_id, acara_id, status_peserta, approval_status) VALUES
-(1, 1, 'ikut', 'disetujui'),
-(2, 1, 'ikut', 'disetujui'),
-(3, 1, 'ikut', 'disetujui'),
-(4, 1, 'ikut', 'disetujui'),
-(5, 1, 'ikut', 'disetujui'),
-(6, 1, 'ikut', 'disetujui'),
-(1, 2, 'ikut', 'disetujui'),
-(2, 2, 'ikut', 'disetujui');
+INSERT INTO peserta_acara (anggota_id, acara_id, status_peserta, approval_status, approved_by) VALUES
+(1, 1, 'ikut', 'disetujui', 1),
+(2, 1, 'ikut', 'disetujui', 1),
+(3, 1, 'ikut', 'disetujui', 1),
+(4, 1, 'ikut', 'disetujui', 1),
+(5, 1, 'ikut', 'disetujui', 1),
+(6, 1, 'ikut', 'disetujui', 1),
+(1, 2, 'ikut', 'disetujui', 1),
+(2, 2, 'ikut', 'disetujui', 1);
 GO
 
 PRINT '✅ Database choir_app berhasil diinisialisasi!';

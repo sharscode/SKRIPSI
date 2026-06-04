@@ -144,18 +144,20 @@ GO
 -- ============================================================
 CREATE TABLE peserta_acara (
     id                INT IDENTITY(1,1) PRIMARY KEY,
-    status_peserta    VARCHAR(20) NOT NULL DEFAULT 'ikut'
-                      CONSTRAINT chk_peserta_status CHECK (status_peserta IN ('ikut','batal')),
-    approval_status   VARCHAR(20) NOT NULL DEFAULT 'menunggu'
-                      CONSTRAINT chk_peserta_approval CHECK (approval_status IN ('menunggu','disetujui','ditolak')),
+    status_peserta    VARCHAR(20) NULL,
+    approval_status   VARCHAR(20) NOT NULL DEFAULT 'menunggu',
     alasan_perubahan  VARCHAR(255) NULL,
     alasan_reject     VARCHAR(255) NULL,
     anggota_id        INT NOT NULL,
     acara_id          INT NOT NULL,
+    approved_by       INT NOT NULL,
     created_at        DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT uq_peserta UNIQUE (anggota_id, acara_id),
+    CONSTRAINT chk_peserta_status CHECK (status_peserta IN ('ikut','batal')),
+    CONSTRAINT chk_peserta_approval CHECK (approval_status IN ('menunggu','disetujui','ditolak')),
     CONSTRAINT fk_peserta_anggota FOREIGN KEY (anggota_id) REFERENCES anggota(id),
-    CONSTRAINT fk_peserta_acara FOREIGN KEY (acara_id) REFERENCES acara(id)
+    CONSTRAINT fk_peserta_acara FOREIGN KEY (acara_id) REFERENCES acara(id),
+    CONSTRAINT fk_peserta_admin FOREIGN KEY (approved_by) REFERENCES admin(id)
 );
 GO
 
@@ -300,13 +302,13 @@ INSERT INTO acara_partitur (acara_id, partitur_id) VALUES
 (1, 1), (1, 3), (2, 2);
 
 -- Peserta Acara (Event Participants)
-INSERT INTO peserta_acara (anggota_id, acara_id, status_peserta, approval_status) VALUES
-(1, 1, 'ikut', 'disetujui'),
-(2, 1, 'ikut', 'disetujui'),
-(3, 1, 'ikut', 'disetujui'),
-(4, 1, 'ikut', 'menunggu'),
-(5, 2, 'ikut', 'disetujui'),
-(6, 2, 'ikut', 'disetujui');
+INSERT INTO peserta_acara (anggota_id, acara_id, status_peserta, approval_status, approved_by) VALUES
+(1, 1, 'ikut', 'disetujui', 1),
+(2, 1, 'ikut', 'disetujui', 1),
+(3, 1, 'ikut', 'disetujui', 1),
+(4, 1, 'ikut', 'menunggu', 1),
+(5, 2, 'ikut', 'disetujui', 1),
+(6, 2, 'ikut', 'disetujui', 1);
 
 -- Latihan (Practice Sessions)
 INSERT INTO latihan (tanggal, jam, lokasi, keterangan, tipe_latihan, created_by, acara_id) VALUES

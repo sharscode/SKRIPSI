@@ -38,14 +38,16 @@ async function getByAnggota(anggota_id) {
 async function selfRegister(anggota_id, acara_id) {
   const pool = await getPool();
   const acara = await pool.request().input('id', sql.Int, acara_id)
-    .query("SELECT status FROM acara WHERE id=@id");
+    .query("SELECT status, created_by FROM acara WHERE id=@id");
   if (!acara.recordset[0]) throw { statusCode: 404, message: 'Acara tidak ditemukan.' };
   if (acara.recordset[0].status !== 'aktif') throw { statusCode: 400, message: 'Acara tidak dalam status aktif.' };
+  const defaultAdminId = acara.recordset[0].created_by;
+
   const dup = await pool.request().input('a', sql.Int, anggota_id).input('ac', sql.Int, acara_id)
     .query('SELECT id FROM peserta_acara WHERE anggota_id=@a AND acara_id=@ac');
   if (dup.recordset.length > 0) throw { statusCode: 409, message: 'Anda sudah terdaftar pada acara ini.' };
-  await pool.request().input('anggota_id', sql.Int, anggota_id).input('acara_id', sql.Int, acara_id)
-    .query('INSERT INTO peserta_acara (anggota_id, acara_id) VALUES (@anggota_id, @acara_id)');
+  await pool.request().input('anggota_id', sql.Int, anggota_id).input('acara_id', sql.Int, acara_id).input('approved_by', sql.Int, defaultAdminId)
+    .query('INSERT INTO peserta_acara (anggota_id, acara_id, approved_by) VALUES (@anggota_id, @acara_id, @approved_by)');
 }
 
 async function manualRegister(anggota_id, acara_id, adminId) {
@@ -53,8 +55,8 @@ async function manualRegister(anggota_id, acara_id, adminId) {
   const dup = await pool.request().input('a', sql.Int, anggota_id).input('ac', sql.Int, acara_id)
     .query('SELECT id FROM peserta_acara WHERE anggota_id=@a AND acara_id=@ac');
   if (dup.recordset.length > 0) throw { statusCode: 409, message: 'Anggota sudah terdaftar pada acara ini.' };
-  await pool.request().input('anggota_id', sql.Int, anggota_id).input('acara_id', sql.Int, acara_id)
-    .query("INSERT INTO peserta_acara (anggota_id, acara_id, approval_status, status_peserta) VALUES (@anggota_id, @acara_id, 'disetujui', 'ikut')");
+  await pool.request().input('anggota_id', sql.Int, anggota_id).input('acara_id', sql.Int, acara_id).input('approved_by', sql.Int, adminId)
+    .query("INSERT INTO peserta_acara (anggota_id, acara_id, approval_status, status_peserta, approved_by) VALUES (@anggota_id, @acara_id, 'disetujui', 'ikut', @approved_by)");
 
   // Sync to existing 'sekali' practice sessions for this event
   const latihanResult = await pool.request().input('acara_id', sql.Int, acara_id)
@@ -71,9 +73,9 @@ async function manualRegister(anggota_id, acara_id, adminId) {
   }
 }
 
-async function updateApproval(id, { approval_status, alasan_reject }) {
+async function updateApproval(id, { approval_status, alasan_reject }, adminId) {
   const pool = await getPool();
-  let query = 'UPDATE peserta_acara SET approval_status=@approval_status, alasan_reject=@alasan';
+  let query = 'UPDATE peserta_acara SET approval_status=@approval_status, alasan_reject=@alasan, approved_by=@approved_by';
   if (approval_status === 'disetujui') {
     query += ", status_peserta='ikut'";
   } else if (approval_status === 'ditolak') {
@@ -84,6 +86,7 @@ async function updateApproval(id, { approval_status, alasan_reject }) {
   await pool.request().input('id', sql.Int, id)
     .input('approval_status', sql.VarChar, approval_status)
     .input('alasan', sql.VarChar, alasan_reject || null)
+    .input('approved_by', sql.Int, adminId)
     .query(query);
 
   // Get participant details to sync absensi

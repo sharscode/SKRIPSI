@@ -23,7 +23,7 @@ async function manualRegister(req, res) {
 }
 async function updateApproval(req, res) {
   try {
-    await svc.updateApproval(+req.params.id, req.body);
+    await svc.updateApproval(+req.params.id, req.body, req.user.id);
     sendSuccess(res, 'Status approval berhasil diperbarui.');
   } catch (err) { sendError(res, err.message, err.statusCode || 500); }
 }
