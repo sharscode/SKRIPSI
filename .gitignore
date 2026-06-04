@@ -1,0 +1,42 @@
+# =====================
+# Node.js
+# =====================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+
+# =====================
+# Flutter / Dart
+# =====================
+.dart_tool/
+.packages
+.pub/
+build/
+
+# Flutter generated
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# iOS / Android generated
+ios/Pods/
+android/.gradle/
+
+# =====================
+# VSCode
+# =====================
+.vscode/
+
+# =====================
+# OS Files
+# =====================
+Thumbs.db
+.DS_Store
+
+# =====================
+# Logs
+# =====================
+*.log

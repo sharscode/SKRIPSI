@@ -1,0 +1,213 @@
+import { useEffect, useState } from 'react';
+import api from '../config/api';
+import { useAuth } from '../context/AuthContext';
+import Badge from '../components/ui/Badge';
+import { formatDate } from '../utils/formatDate';
+import { useToast } from '../components/ui/Toast';
+import './DashboardPage.css';
+
+function StatCard({ icon, label, value, color, loading, delay = 0 }) {
+  const colors = {
+    primary: { accent: '#6B91B8', bg: '#EEF3F8', glow: 'rgba(107,145,184,.25)' },
+    success: { accent: '#10B981', bg: '#D1FAE5', glow: 'rgba(16,185,129,.2)' },
+    warning: { accent: '#F59E0B', bg: '#FEF3C7', glow: 'rgba(245,158,11,.2)' },
+    info:    { accent: '#3B82F6', bg: '#DBEAFE', glow: 'rgba(59,130,246,.2)' },
+  };
+  const c = colors[color] || colors.primary;
+
+  return (
+    <div
+      className="stat-card"
+      style={{ '--stat-color': c.accent, '--stat-bg': c.bg, animationDelay: `${delay}s` }}
+    >
+      <div className="stat-card-icon">{icon}</div>
+      {loading ? (
+        <div style={{ height: 36, borderRadius: 8 }} className="shimmer" />
+      ) : (
+        <div className="stat-card-value">{value}</div>
+      )}
+      <div className="stat-card-label">{label}</div>
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  const { user } = useAuth();
+  const toast = useToast();
+  const [stats, setStats]     = useState(null);
+  const [events, setEvents]   = useState([]);
+  const [latihan, setLatihan] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [periode, setPeriode] = useState('2025/2026');
+  const [periods, setPeriods] = useState([]);
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/anggota?limit=1'),
+      api.get('/acara'),
+      api.get('/latihan'),
+      api.get('/anggota-ukm?status_keaktifan=aktif'),
+      api.get('/settings/active-periode'),
+      api.get('/settings/periodes'),
+    ]).then(([a, ac, l, aukm, s, p]) => {
+      const aktifAcara   = ac.data.data.filter((e) => e.status === 'aktif');
+      const totalAnggota = a.data.data.pagination?.total ?? a.data.data.length;
+      const anggotaAktif = aukm.data.data.length;
+      const activePeriode = s.data.data?.periode || '2025/2026';
+      
+      setStats({
+        totalAnggota,
+        anggotaAktif,
+        acaraAktif:   aktifAcara.length,
+        totalLatihan: l.data.data.length,
+      });
+      setPeriode(activePeriode);
+      setPeriods(p.data.data || []);
+      setEvents(aktifAcara.slice(0, 5));
+      const upcoming = l.data.data
+        .filter((lt) => new Date(lt.tanggal) >= new Date())
+        .slice(0, 5);
+      setLatihan(upcoming);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  const handleUpdateActivePeriod = async (newPeriod) => {
+    try {
+      await api.put('/settings/active-periode', { periode: newPeriod });
+      setPeriode(newPeriod);
+      toast('Periode aktif berhasil diperbarui.', 'success');
+    } catch (err) {
+      toast(err.response?.data?.message || 'Gagal memperbarui periode aktif.', 'error');
+    }
+  };
+
+  const hour     = new Date().getHours();
+  const greeting = hour < 12 ? 'Selamat Pagi' : hour < 17 ? 'Selamat Siang' : 'Selamat Malam';
+  const today    = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  return (
+    <div className="dashboard">
+      {/* Hero Header */}
+      <div className="dashboard-hero">
+        <div style={{ zIndex: 1 }}>
+          <h2 className="dash-greeting">{greeting}, {user?.nama?.split(' ')[0] || 'Admin'}! 👋</h2>
+          <p className="dash-date">{today}</p>
+        </div>
+        <div className="dash-hero-badge" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div className="dash-hero-badge-label">Periode Berjalan</div>
+          <select 
+            value={periode} 
+            onChange={(e) => handleUpdateActivePeriod(e.target.value)}
+            style={{
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              color: '#fff',
+              fontSize: '0.9rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              outline: 'none',
+              textAlign: 'center',
+              padding: '4px 10px',
+              borderRadius: '8px',
+              marginTop: '4px',
+              fontFamily: 'inherit'
+            }}
+          >
+            {periods.length === 0 ? (
+              <option value={periode} style={{ color: '#334155', backgroundColor: '#fff' }}>{periode}</option>
+            ) : (
+              periods.map(p => (
+                <option key={p} value={p} style={{ color: '#334155', backgroundColor: '#fff' }}>
+                  {p}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="dash-stats">
+        <StatCard icon="👥" label="Total Anggota"  value={stats?.totalAnggota ?? '—'} color="primary" loading={loading} delay={0}    />
+        <StatCard icon="⭐" label="Anggota Aktif"  value={stats?.anggotaAktif ?? '—'} color="info"    loading={loading} delay={0.05} />
+        <StatCard icon="🎵" label="Acara Aktif"    value={stats?.acaraAktif ?? '—'}   color="success" loading={loading} delay={0.1}  />
+        <StatCard icon="📅" label="Total Latihan"  value={stats?.totalLatihan ?? '—'} color="warning" loading={loading} delay={0.15} />
+        <StatCard icon="🎓" label="Tahun Akademik" value={periode}                    color="info"    loading={loading} delay={0.2}  />
+      </div>
+
+      {/* Content Grid */}
+      <div className="dash-grid">
+        {/* Active Events */}
+        <div className="dash-section">
+          <div className="dash-section-header">
+            <h3 className="dash-section-title">🎵 Acara Aktif</h3>
+            {!loading && <span className="dash-section-count">{events.length} acara</span>}
+          </div>
+          <div className="dash-section-body">
+            {loading ? (
+              <> <div className="dash-skeleton"/> <div className="dash-skeleton"/> <div className="dash-skeleton"/> </>
+            ) : events.length === 0 ? (
+              <div className="dash-empty">
+                <div className="dash-empty-icon">🎵</div>
+                <div className="dash-empty-text">Belum ada acara aktif</div>
+              </div>
+            ) : (
+              <ul>
+                {events.map((e) => (
+                  <li key={e.id} className="dash-event-item">
+                    <div className="dash-event-dot" />
+                    <div className="dash-event-info">
+                      <p className="dash-event-name">{e.nama_acara}</p>
+                      <p className="dash-event-meta">{formatDate(e.tanggal)} · {e.lokasi}</p>
+                    </div>
+                    <Badge status={e.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* Upcoming Latihan */}
+        <div className="dash-section">
+          <div className="dash-section-header">
+            <h3 className="dash-section-title">📅 Latihan Mendatang</h3>
+            {!loading && <span className="dash-section-count">{latihan.length} sesi</span>}
+          </div>
+          <div className="dash-section-body">
+            {loading ? (
+              <> <div className="dash-skeleton"/> <div className="dash-skeleton"/> <div className="dash-skeleton"/> </>
+            ) : latihan.length === 0 ? (
+              <div className="dash-empty">
+                <div className="dash-empty-icon">📅</div>
+                <div className="dash-empty-text">Tidak ada jadwal mendatang</div>
+              </div>
+            ) : (
+              <ul>
+                {latihan.map((l) => (
+                  <li key={l.id} className="dash-latihan-item">
+                    <div className="dash-latihan-date">
+                      <p className="date-day">{new Date(l.tanggal).getDate()}</p>
+                      <p className="date-month">{new Date(l.tanggal).toLocaleDateString('id-ID', { month: 'short' })}</p>
+                    </div>
+                    <div className="dash-latihan-info">
+                      <p className="dash-latihan-time">{l.jam} WIB</p>
+                      <p className="dash-latihan-loc">{l.lokasi}</p>
+                      {l.nama_acara && <p className="dash-latihan-event">🎵 {l.nama_acara}</p>}
+                    </div>
+                    <Badge
+                      status={l.tipe_latihan}
+                      variant={l.tipe_latihan === 'rutin' ? 'info' : 'primary'}
+                      label={l.tipe_latihan === 'rutin' ? 'Rutin' : 'Acara'}
+                      size="sm"
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

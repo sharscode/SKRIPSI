@@ -1,0 +1,30 @@
+.skkk-summary {
+  background: linear-gradient(135deg, rgba(107, 145, 184, 0.08), rgba(255, 255, 255, 0.8));
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(107, 145, 184, 0.2);
+  border-radius: var(--r-xl);
+}
+.skkk-event-title {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--c-primary-800);
+  margin-bottom: var(--sp-4);
+}
+.skkk-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  font-size: var(--text-sm);
+  color: var(--c-neutral-600);
+}
+.skkk-meta span {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(107, 145, 184, 0.15);
+  padding: 6px 12px;
+  border-radius: var(--r-md);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-weight: 500;
+}
+

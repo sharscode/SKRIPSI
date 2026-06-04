@@ -1,0 +1,6 @@
+node_modules/
+.env
+uploads/partitur/*.pdf
+uploads/dokumentasi/*
+uploads/photos/*
+*.log

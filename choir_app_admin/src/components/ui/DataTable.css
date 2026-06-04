@@ -1,0 +1,13 @@
+/* DataTable specific styling */
+.table-skeleton {
+  height: 16px;
+  width: 80%;
+  border-radius: var(--r-sm);
+}
+.table-empty {
+  text-align: center;
+  color: var(--c-neutral-400);
+  padding: var(--sp-12) var(--sp-4) !important;
+  font-weight: 500;
+}
+

@@ -1,0 +1,14 @@
+.admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--sp-4); }
+.admin-card { display: flex; flex-direction: column; gap: var(--sp-3); }
+.admin-card-header { display: flex; align-items: center; gap: var(--sp-3); }
+.admin-avatar {
+  width: 44px; height: 44px; border-radius: var(--r-full);
+  background: linear-gradient(135deg, var(--c-primary-400), var(--c-primary-600));
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: var(--text-lg); flex-shrink: 0;
+}
+.admin-info { flex: 1; min-width: 0; }
+.admin-name { font-size: var(--text-base); font-weight: 600; color: var(--c-neutral-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin-email { font-size: var(--text-xs); color: var(--c-neutral-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin-created { font-size: var(--text-xs); color: var(--c-neutral-400); }
+.admin-card-actions { display: flex; gap: var(--sp-2); border-top: 1px solid var(--c-neutral-100); padding-top: var(--sp-3); }

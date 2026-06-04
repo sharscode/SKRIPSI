@@ -1,0 +1,7 @@
+.detail-info-card { display: flex; flex-direction: column; gap: var(--sp-4); }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-4); }
+.detail-field { display: flex; flex-direction: column; gap: 4px; }
+.detail-label { font-size: var(--text-xs); font-weight: 600; color: var(--c-neutral-400); text-transform: uppercase; letter-spacing: .5px; }
+.detail-value { font-size: var(--text-sm); font-weight: 500; color: var(--c-neutral-700); }
+.detail-actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; padding-top: var(--sp-2); border-top: 1px solid var(--c-neutral-100); }
+.detail-skeleton-header { padding: 0; }

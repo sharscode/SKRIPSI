@@ -1,0 +1,13 @@
+.card {
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+  padding: var(--sp-6);
+  transition: box-shadow var(--t-base), transform var(--t-base);
+}
+.card-no-pad { padding: 0; }
+.card-hover:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+

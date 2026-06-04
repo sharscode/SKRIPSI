@@ -1,0 +1,50 @@
+/* Stats row */
+.absensi-stats {
+  display: flex;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+.abs-stat {
+  flex: 1;
+  min-width: 120px;
+  padding: var(--sp-4);
+  border-radius: var(--r-xl);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--t-base), box-shadow var(--t-base);
+}
+.abs-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.abs-stat-count {
+  display: block;
+  font-size: var(--text-3xl);
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.abs-stat-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--c-neutral-400);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.abs-stat-hadir .abs-stat-count { color: var(--c-success); }
+.abs-stat-izin .abs-stat-count { color: var(--c-warning); }
+.abs-stat-sakit .abs-stat-count { color: var(--c-info); }
+.abs-stat-alpha .abs-stat-count { color: var(--c-danger); }
+.abs-stat-total .abs-stat-count { color: var(--c-primary-700); }
+
+/* Inline select */
+.abs-select { min-width: 110px; }
+.abs-select select {
+  padding: 4px 24px 4px 8px;
+  font-size: var(--text-xs);
+  border-radius: var(--r-md);
+  border-color: var(--c-neutral-200);
+}

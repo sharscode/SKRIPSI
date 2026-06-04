@@ -1,0 +1,27 @@
+/* ── DASHBOARD LAYOUT ─────────────────────────────────── */
+
+.layout-root {
+  display: flex; min-height: 100vh;
+}
+
+.layout-main {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  transition: margin-left var(--t-slow) cubic-bezier(.4,0,.2,1);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+
+.layout-collapsed { margin-left: var(--sidebar-collapsed); }
+
+.layout-content {
+  flex: 1;
+  padding: calc(var(--topbar-h) + 28px) 28px 40px;
+  max-width: 1400px;
+  animation: fadeIn .4s both;
+}
+
+@media (max-width: 768px) {
+  .layout-main { margin-left: 0; }
+  .layout-content { padding: calc(var(--topbar-h) + 20px) 16px 32px; }
+}
