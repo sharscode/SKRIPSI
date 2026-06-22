@@ -185,9 +185,10 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isMini) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      return AppCard(
+        color: AppColors.neutral50,
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -200,7 +201,7 @@ class EmptyState extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 subtitle,
                 style: const TextStyle(
