@@ -1,7 +1,7 @@
 /**
  * SQL Server Database Connection Pool (Singleton)
  * Uses mssql package with connection pooling.
- * Connects via TCP port 1433 (SQL Server Express with TCP enabled).
+ * Supports both local SQL Server and AWS RDS SQL Server.
  */
 const sql = require('mssql');
 const config = require('./env');
@@ -16,14 +16,14 @@ async function getPool() {
   if (pool) return pool;
 
   const dbConfig = {
-    server: config.db.server,        // e.g. 'localhost'
+    server: config.db.server,
     database: config.db.database,
     user: config.db.user,
     password: config.db.password,
-    port: 1433,
+    port: config.db.port,
     options: {
-      encrypt: false,
-      trustServerCertificate: true,
+      encrypt: config.db.options.encrypt,                           // true for AWS RDS
+      trustServerCertificate: config.db.options.trustServerCertificate, // false for AWS RDS
     },
     pool: {
       max: 10,
