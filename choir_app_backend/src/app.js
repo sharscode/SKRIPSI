@@ -57,7 +57,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // ── Health Check ─────────────────────────────────────────
-app.get('/health', (req, res) => {
+app.get(['/health', '/healthz'], (req, res) => {
   res.json({ success: true, message: 'PCU Choir API is running.', version: '2.0.0', timestamp: new Date().toISOString() });
 });
 
