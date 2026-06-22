@@ -86,7 +86,7 @@ export default function AnggotaFormPage() {
                 onChange={set('nrp')} 
                 error={errors.nrp} 
                 disabled={isEdit} 
-                placeholder="C14230001" 
+                placeholder="Input NRP"
                 className="col-2"
                 icon="🆔"
               />
@@ -96,7 +96,7 @@ export default function AnggotaFormPage() {
                 value={form.nama_lengkap} 
                 onChange={set('nama_lengkap')} 
                 error={errors.nama_lengkap} 
-                placeholder="Maria Theresia" 
+                placeholder="Input Nama Lengkap"
                 className="col-4"
                 icon="👤"
               />
@@ -117,7 +117,7 @@ export default function AnggotaFormPage() {
                 value={form.jurusan} 
                 onChange={set('jurusan')} 
                 error={errors.jurusan} 
-                placeholder="Informatika" 
+                placeholder="Input Jurusan"
                 className="col-2"
                 icon="🎓"
               />
@@ -143,7 +143,7 @@ export default function AnggotaFormPage() {
                 value={form.email} 
                 onChange={set('email')} 
                 error={errors.email} 
-                placeholder="maria@student.pcu.ac.id" 
+                placeholder="Input Email"
                 className="col-3"
                 icon="✉️"
               />
@@ -153,7 +153,7 @@ export default function AnggotaFormPage() {
                 value={form.kontak} 
                 onChange={set('kontak')} 
                 error={errors.kontak} 
-                placeholder="081234567890" 
+                placeholder="Input No. Telepon"
                 className="col-3"
                 icon="📞"
               />
@@ -162,7 +162,7 @@ export default function AnggotaFormPage() {
                 label="Alamat" 
                 value={form.alamat} 
                 onChange={set('alamat')} 
-                placeholder="Jl. Siwalankerto 121, Surabaya" 
+                placeholder="Input Alamat"
                 className="col-6"
                 icon="🏠"
               />

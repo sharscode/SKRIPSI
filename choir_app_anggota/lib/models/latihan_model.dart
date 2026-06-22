@@ -56,10 +56,12 @@ class LatihanModel {
   bool get isUpcoming {
     final dt = tanggalAsDate;
     if (dt == null) return false;
-    return dt.isAfter(DateTime.now().subtract(const Duration(hours: 2)));
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return dt.isAtSameMomentAs(today) || dt.isAfter(today);
   }
 
-  String get tipeDisplay => isRutin ? 'Latihan Reguler' : 'Latihan Persiapan Acara';
+  String get tipeDisplay => isRutin ? 'Latihan UKM' : 'Latihan Persiapan Acara';
 
   static String _parseDate(dynamic value) {
     if (value == null) return '';

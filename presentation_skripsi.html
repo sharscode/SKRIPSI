@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thesis Defense Presentation - Darlene Sharon Faith R.</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Base Reset & Variables */
+        :root {
+            --bg-dark: #0f172a;
+            --bg-slate: #1e293b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --accent: #f59e0b;
+            --accent-glow: rgba(245, 158, 11, 0.15);
+            --sopran: #10b981;
+            --alto: #ec4899;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --panel-glass: rgba(30, 41, 59, 0.7);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            user-select: none;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+        }
+
+        /* Background Animated Glows */
+        .glow-bg {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+            top: -200px;
+            left: -200px;
+            z-index: -1;
+            pointer-events: none;
+            animation: floatGlow 20s infinite alternate;
+        }
+
+        .glow-bg-right {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+            bottom: -150px;
+            right: -150px;
+            z-index: -1;
+            pointer-events: none;
+            animation: floatGlowRight 25s infinite alternate;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 50px) scale(1.1); }
+        }
+        @keyframes floatGlowRight {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-80px, -60px) scale(1.15); }
+        }
+
+        /* Header Navigation */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--panel-border);
+            z-index: 10;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--bg-dark);
+            font-family: 'Outfit', sans-serif;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .title-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-main {
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: #fff;
+        }
+
+        .title-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Presenter Timer Controls */
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--panel-border);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+        }
+
+        .timer-display {
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            text-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .timer-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+            transition: var(--transition);
+        }
+
+        .timer-btn:hover {
+            color: var(--text-light);
+        }
+
+        /* Slide Engine */
+        .slide-container {
+            flex-grow: 1;
+            position: relative;
+            padding: 2.5rem 4rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            width: calc(100% - 8rem);
+            height: calc(100% - 5rem);
+            opacity: 0;
+            transform: translateY(25px) scale(0.98);
+            pointer-events: none;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            z-index: 2;
+        }
+
+        /* Slide Card Panel Styles */
+        .slide-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            align-items: center;
+            width: 100%;
+        }
+
+        .glass-panel {
+            background: var(--panel-glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--panel-border);
+            border-radius: 18px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            transition: var(--transition);
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.35);
+        }
+
+        .slide-title-area {
+            margin-bottom: 1.5rem;
+        }
+
+        .slide-tag {
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .slide-title {
+            font-size: 2.2rem;
+            color: #fff;
+            line-height: 1.25;
+            background: linear-gradient(135deg, #fff 60%, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide-text {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        /* Utility Components */
+        .accent-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .accent-list li {
+            position: relative;
+            padding-left: 2rem;
+            line-height: 1.5;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .accent-list li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            top: 1px;
+            color: var(--accent);
+            font-size: 1.1rem;
+            text-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .highlight-box {
+            background: rgba(59, 130, 246, 0.08);
+            border-left: 4px solid var(--primary);
+            padding: 1.2rem;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 1rem;
+        }
+
+        .highlight-box h4 {
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .highlight-box p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* Large Centered Title Slide Styles */
+        .title-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .title-slide-tag {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .title-slide-main {
+            font-size: 3.2rem;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            max-width: 1100px;
+            background: linear-gradient(135deg, #fff 40%, #93c5fd 70%, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .author-box {
+            margin-top: 2rem;
+            padding: 1.5rem 3rem;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--panel-border);
+            border-radius: 15px;
+            max-width: 650px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            text-align: left;
+        }
+
+        .author-box h5 {
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+
+        .author-box p {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* System Solution Columns */
+        .solutions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .sol-card {
+            background: var(--panel-glass);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 1.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .sol-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 12px 25px rgba(59, 130, 246, 0.15);
+        }
+
+        .sol-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            background: rgba(59, 130, 246, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .sol-card.alt .sol-icon {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent);
+        }
+
+        .sol-card h4 {
+            font-size: 1.15rem;
+            color: #fff;
+        }
+
+        .sol-card p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* Comparison & Data Tables */
+        .data-table-container {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--panel-border);
+            background: rgba(15, 23, 42, 0.4);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: rgba(30, 41, 59, 0.9);
+            color: #fff;
+            padding: 10px 14px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--panel-border);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            color: var(--text-light);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .highlight-row {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .highlight-row td {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .efficiency-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--sopran);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* SVG Diagram Flex Containers */
+        .diagram-container {
+            width: 100%;
+            height: 100%;
+            min-height: 380px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .diagram-container svg {
+            width: 100%;
+            height: 100%;
+            max-height: 480px;
+        }
+
+        /* Footer Controls */
+        footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid var(--panel-border);
+            z-index: 10;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            color: var(--text-muted);
+            border-color: var(--panel-border);
+            background: none;
+        }
+
+        .progress-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+            margin: 0 40px;
+        }
+
+        .progress-bar-bg {
+            flex-grow: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 9%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 3px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slide-counter {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: right;
+            color: var(--text-muted);
+        }
+
+        .shortcut-badge {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--panel-border);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        /* Sidebar Index Panel */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(15px);
+            border-left: 1px solid var(--panel-border);
+            z-index: 100;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .close-sidebar-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.3rem;
+        }
+
+        .sidebar-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .sidebar-item {
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            border: 1px solid transparent;
+            color: var(--text-muted);
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-light);
+        }
+
+        .sidebar-item.active {
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--primary);
+            border-color: rgba(59, 130, 246, 0.2);
+            font-weight: 600;
+        }
+
+        .menu-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .menu-toggle-btn:hover {
+            color: var(--text-light);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow-bg"></div>
+    <div class="glow-bg-right"></div>
+
+    <!-- Header Area -->
+    <header>
+        <div class="logo-section">
+            <div class="logo-circle">PC</div>
+            <div class="title-text">
+                <span class="title-main">PCU CHOIR</span>
+                <span class="title-sub">Thesis Presentation Defense 2026</span>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="timer-container" title="Presentation Time Limit (5 Mins)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span class="timer-display" id="timer">05:00</span>
+                <button class="timer-btn" id="play-pause-btn" onclick="toggleTimer()">
+                    <svg id="play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <button class="timer-btn" onclick="resetTimer()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                </button>
+            </div>
+            <button class="menu-toggle-btn" onclick="toggleSidebar()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Jump to Slide</h3>
+            <button class="close-sidebar-btn" onclick="toggleSidebar()">&times;</button>
+        </div>
+        <ul class="sidebar-list" id="sidebar-list">
+            <!-- Populated dynamically via JS -->
+        </ul>
+    </div>
+
+    <!-- Main Slides Container -->
+    <main class="slide-container">
+
+        <!-- SLIDE 1: TITLE SLIDE -->
+        <div class="slide active title-slide" data-category="Introduction">
+            <span class="title-slide-tag">Undergraduate Thesis Defense</span>
+            <h1 class="title-slide-main">Integrated Web and Mobile-Based Management Information System for Event, Attendance, and Music Score Management at PCU Choir</h1>
+            
+            <div class="author-box">
+                <div>
+                    <h5>Presented By</h5>
+                    <p>Darlene Sharon Faith Rahardjo</p>
+                    <p style="color: var(--text-muted); font-size: 0.8rem; font-weight: 400; margin-top: 2px;">NRP: C14220298</p>
+                </div>
+                <div>
+                    <h5>Supervised By</h5>
+                    <p>Adi Wibowo, S.T., M.T., Ph.D.</p>
+                    <p style="font-size: 0.85rem; color: var(--text-light); font-weight: 500; margin-top: 2px;">Anita Nathania P., S.Kom., M.MT.</p>
+                </div>
+            </div>
+            <p style="margin-top: 2.5rem; color: var(--text-muted); font-size: 0.8rem; letter-spacing: 0.05em;">DEPARTMENT OF INFORMATICS &bull; PETRA CHRISTIAN UNIVERSITY &bull; SURABAYA</p>
+        </div>
+
+        <!-- SLIDE 2: CONTEXT & PROBLEM -->
+        <div class="slide" data-category="Problem Statement">
+            <div class="slide-grid">
+                <div>
+                    <div class="slide-title-area">
+                        <span class="slide-tag">Context & Problem</span>
+                        <h2 class="slide-title">Administrative Bottlenecks at PCU Choir</h2>
+                    </div>
+                    <p class="slide-text">PCU Choir is a high-intensity student activity unit (70-80 active members, 10+ major annual events). Managing these activities manually resulted in operational inefficiencies:</p>
+                    <div class="highlight-box">
+                        <h4>Manual Fragmented Processes</h4>
+                        <p>Coordination was scattered across WhatsApp copy-paste lists, Google Drive, Excel, and paper sheets. This led to delays and loss of historical activity data.</p>
+                    </div>
+                </div>
+                <div class="glass-panel">
+                    <h3 style="font-size: 1.15rem; margin-bottom: 1.2rem; color: #fff;">Key Core Problems</h3>
+                    <ul class="accent-list">
+                        <li><strong>Attendance Vulnerabilities:</strong> Paper attendance sign-sheets were prone to proxy checking (titip absen), signatures were hard to read, and manual validation was slow.</li>
+                        <li><strong>Uncataloged Music Sheets:</strong> Physical storage and Google Drive directories lacked metadata catalogs (SATB, Genre, etc.), making score discovery difficult.</li>
+                        <li><strong>Delayed SKKK Validation:</strong> Calculating attendance percentages manually took up to 40 minutes per event, leading to a 1-2 week delay in student credit reports.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: RESEARCH QUESTIONS -->
+        <div class="slide" data-category="Research Scope">
+            <div class="slide-grid">
+                <div class="glass-panel">
+                    <span class="slide-tag">Research Questions</span>
+                    <h3 style="font-size: 1.6rem; color: #fff; margin-bottom: 1.5rem; line-height: 1.3;">Defining the Scientific & Operational Objectives</h3>
+                    <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                        <div style="border-left: 3px solid var(--accent); padding-left: 1rem;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent);">RESEARCH QUESTION 1</span>
+                            <p style="font-size: 0.9rem; color: var(--text-light); margin-top: 2px;">How can an integrated MIS improve the time-efficiency of administrative tasks at PCU Choir?</p>
+                        </div>
+                        <div style="border-left: 3px solid var(--primary); padding-left: 1rem;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">RESEARCH QUESTION 2</span>
+                            <p style="font-size: 0.9rem; color: var(--text-light); margin-top: 2px;">To what extent does a dynamic QR-based attendance module secure data and accelerate check-ins?</p>
+                        </div>
+                        <div style="border-left: 3px solid var(--sopran); padding-left: 1rem;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--sopran);">RESEARCH QUESTION 3</span>
+                            <p style="font-size: 0.9rem; color: var(--text-light); margin-top: 2px;">How does automated reporting affect validation speeds and accuracy of student activity (SKKK) reports?</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="slide-title-area">
+                        <span class="slide-tag">Scope of Research</span>
+                        <h2 class="slide-title">System Limitations</h2>
+                    </div>
+                    <ul class="accent-list" style="gap: 0.8rem;">
+                        <li><strong>Target Users:</strong> Fungsionaris (Web Admin Panel) and Active Members of PCU Choir (Mobile App).</li>
+                        <li><strong>Input Boundaries:</strong> Member profiles, Event scheduling, Practice rosters, dynamic QR scan codes, and PDF sheets. (Excludes financial records and inventory).</li>
+                        <li><strong>Technical constraints:</strong> Uses custom internal REST APIs; does not include advanced algorithms (ML) or third-party SSO integrations.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: THE INTEGRATED SOLUTION -->
+        <div class="slide" data-category="The Solution">
+            <div class="slide-title-area" style="text-align: center; margin-bottom: 2rem;">
+                <span class="slide-tag">Proposed System Design</span>
+                <h2 class="slide-title" style="font-size: 2.2rem;">PCU Choir Integrated Management System</h2>
+            </div>
+            
+            <div class="solutions-grid">
+                <!-- Card 1: Web Admin -->
+                <div class="sol-card">
+                    <div class="sol-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    </div>
+                    <h4>React Web Admin Panel</h4>
+                    <p style="color: var(--text-light); font-weight: 600; font-size: 0.8rem;">For Fungsionaris / Admins</p>
+                    <p>Enables full management of members, schedules (routine vs event), sheet music catalogs, dynamic QR generation, participant status locking, and instant PDF exports of SKKK records.</p>
+                </div>
+                <!-- Card 2: Mobile App -->
+                <div class="sol-card alt">
+                    <div class="sol-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                    </div>
+                    <h4>Flutter Mobile Application</h4>
+                    <p style="color: var(--accent); font-weight: 600; font-size: 0.8rem;">For Active Choir Members</p>
+                    <p>Enables members to self-register for upcoming events, view schedule calendar details via popover, scan dynamic practice QR codes, and preview score sheets directly inside a PDF viewer.</p>
+                </div>
+                <!-- Card 3: Backend API -->
+                <div class="sol-card">
+                    <div class="sol-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--sopran);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg>
+                    </div>
+                    <h4>Secure Node.js & SQL Server</h4>
+                    <p style="color: var(--sopran); font-weight: 600; font-size: 0.8rem;">REST API & Core Database</p>
+                    <p>Uses JWT authentication, dynamic QR rotation intervals, real-time silent socket sync, and automatic attendance list initialization built on SQL Server index optimization.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: METHODOLOGY FLOWCHART -->
+        <div class="slide" data-category="Methodology">
+            <div class="slide-grid" style="grid-template-columns: 350px 1fr;">
+                <div>
+                    <div class="slide-title-area">
+                        <span class="slide-tag">Project Lifecycle</span>
+                        <h2 class="slide-title" style="font-size: 1.8rem; line-height: 1.2;">Methodology & Research Workflow</h2>
+                    </div>
+                    <p class="slide-text" style="font-size: 0.85rem;">The project followed an iterative design and development lifecycle to align system features with the specific administrative workflows of the choir organization:</p>
+                    <div class="highlight-box" style="margin-bottom: 0;">
+                        <h4 style="font-size: 0.9rem;">Waterfall & Agile Hybrid</h4>
+                        <p style="font-size: 0.8rem;">Structured requirements phase followed by rapid sprints to test real-time features like dynamic QR rotation and checklist state syncs.</p>
+                    </div>
+                </div>
+                <div class="diagram-container">
+                    <svg viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Styles -->
+                        <style>
+                            .flow-node { fill: #1e293b; stroke: #3b82f6; stroke-width: 2; rx: 10px; }
+                            .flow-node-accent { fill: #1e293b; stroke: #f59e0b; stroke-width: 2; rx: 10px; }
+                            .flow-text { fill: #f8fafc; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; text-anchor: middle; }
+                            .flow-header { fill: #fff; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; text-anchor: middle; }
+                            .flow-line { stroke: #94a3b8; stroke-width: 2; fill: none; }
+                            .arrow-head { fill: #94a3b8; }
+                        </style>
+
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#94a3b8"/>
+                            </marker>
+                        </defs>
+
+                        <!-- Step 1: Study Literature -->
+                        <g transform="translate(40, 60)">
+                            <rect class="flow-node" width="180" height="60" />
+                            <text x="90" y="25" class="flow-header">1. Literature Review</text>
+                            <text x="90" y="45" class="flow-text">Academic & System Scope</text>
+                        </g>
+
+                        <!-- Step 2: Pengumpulan Data -->
+                        <g transform="translate(310, 60)">
+                            <rect class="flow-node" width="180" height="60" />
+                            <text x="90" y="25" class="flow-header">2. Data Gathering</text>
+                            <text x="90" y="45" class="flow-text">Interviews & Templates</text>
+                        </g>
+
+                        <!-- Step 3: ERD & DB Setup -->
+                        <g transform="translate(580, 60)">
+                            <rect class="flow-node" width="180" height="60" />
+                            <text x="90" y="25" class="flow-header">3. Database Schema</text>
+                            <text x="90" y="45" class="flow-text">SQL Server Setup</text>
+                        </g>
+
+                        <!-- Step 4: Analisis & Desain -->
+                        <g transform="translate(580, 200)">
+                            <rect class="flow-node" width="180" height="60" />
+                            <text x="90" y="25" class="flow-header">4. System Design</text>
+                            <text x="90" y="45" class="flow-text">UML & Figma Mockups</text>
+                        </g>
+
+                        <!-- Step 5: Implementasi -->
+                        <g transform="translate(310, 200)">
+                            <rect class="flow-node" width="180" height="60" />
+                            <text x="90" y="25" class="flow-header">5. Implementation</text>
+                            <text x="90" y="45" class="flow-text">React, Flutter, Express</text>
+                        </g>
+
+                        <!-- Step 6: Pengujian -->
+                        <g transform="translate(40, 200)">
+                            <rect class="flow-node-accent" width="180" height="60" />
+                            <text x="90" y="25" class="flow-header">6. Testing & Evaluation</text>
+                            <text x="90" y="45" class="flow-text">UAT, Usability, Efficiency</text>
+                        </g>
+
+                        <!-- Step 7: Kesimpulan -->
+                        <g transform="translate(40, 330)">
+                            <rect class="flow-node-accent" width="180" height="60" />
+                            <text x="90" y="25" class="flow-header">7. Conclusion & Thesis</text>
+                            <text x="90" y="45" class="flow-text">Final Recommendations</text>
+                        </g>
+
+                        <!-- Connectors -->
+                        <path d="M 220 90 L 304 90" class="flow-line" marker-end="url(#arrow)" />
+                        <path d="M 490 90 L 574 90" class="flow-line" marker-end="url(#arrow)" />
+                        <path d="M 670 120 L 670 194" class="flow-line" marker-end="url(#arrow)" />
+                        <path d="M 580 230 L 496 230" class="flow-line" marker-end="url(#arrow)" />
+                        <path d="M 310 230 L 226 230" class="flow-line" marker-end="url(#arrow)" />
+                        <path d="M 130 260 L 130 324" class="flow-line" marker-end="url(#arrow)" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: SYSTEM BLOCK DIAGRAM -->
+        <div class="slide" data-category="Architecture">
+            <div class="slide-grid" style="grid-template-columns: 320px 1fr;">
+                <div>
+                    <div class="slide-title-area">
+                        <span class="slide-tag">Data Architecture</span>
+                        <h2 class="slide-title" style="font-size: 1.8rem;">System Block Diagram</h2>
+                    </div>
+                    <p class="slide-text" style="font-size: 0.85rem;">The layout separates inputs, processing layers, and outputs. Communication flows through an API controller backend using relational models in MS SQL Server.</p>
+                    <div class="highlight-box" style="margin-bottom: 0;">
+                        <h4 style="font-size: 0.9rem;">Relational Integrity</h4>
+                        <p style="font-size: 0.8rem;">Events act as the main link, dynamically pulling active members for rosters and mapping appropriate partitur sheets.</p>
+                    </div>
+                </div>
+                <div class="diagram-container">
+                    <svg viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <style>
+                            .block-box { fill: #1e293b; stroke: #3b82f6; stroke-width: 2; rx: 8px; }
+                            .block-box-green { fill: #1e293b; stroke: #10b981; stroke-width: 2; rx: 8px; }
+                            .block-box-amber { fill: #1e293b; stroke: #f59e0b; stroke-width: 2; rx: 8px; }
+                            .block-title { fill: #fff; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; text-anchor: middle; }
+                            .block-label { fill: #94a3b8; font-family: 'Inter', sans-serif; font-size: 10px; text-anchor: middle; }
+                            .block-conn { stroke: #3b82f6; stroke-width: 1.5; fill: none; stroke-dasharray: 4 4; }
+                        </style>
+
+                        <!-- Input Column -->
+                        <text x="110" y="50" class="block-title" font-size="14">INPUT DATA</text>
+                        <g transform="translate(30, 80)">
+                            <rect class="block-box-amber" width="160" height="50" />
+                            <text x="80" y="30" class="block-title">Admin Credentials</text>
+                        </g>
+                        <g transform="translate(30, 150)">
+                            <rect class="block-box-amber" width="160" height="50" />
+                            <text x="80" y="30" class="block-title">Member Profiles</text>
+                        </g>
+                        <g transform="translate(30, 220)">
+                            <rect class="block-box-amber" width="160" height="50" />
+                            <text x="80" y="30" class="block-title">Event & Latihan Schedule</text>
+                        </g>
+                        <g transform="translate(30, 290)">
+                            <rect class="block-box-amber" width="160" height="50" />
+                            <text x="80" y="30" class="block-title">Partitur Files & Metadata</text>
+                        </g>
+
+                        <!-- Core Platform Processing Column -->
+                        <text x="400" y="50" class="block-title" font-size="14">CORE SYSTEM LAYER</text>
+                        <g transform="translate(290, 80)">
+                            <rect class="block-box" width="220" height="70" />
+                            <text x="110" y="30" class="block-title">React Web Admin Panel</text>
+                            <text x="110" y="50" class="block-label">Event Roster & QR Generation</text>
+                        </g>
+                        
+                        <!-- Backend API -->
+                        <g transform="translate(320, 185)">
+                            <rect class="block-box" style="stroke: #a855f7; fill: rgba(168, 85, 247, 0.05);" width="160" height="60" />
+                            <text x="80" y="25" class="block-title" style="fill: #d8b4fe;">Express.js API</text>
+                            <text x="80" y="45" class="block-label" style="fill: #e9d5ff;">JWT & SQL Controller</text>
+                        </g>
+
+                        <g transform="translate(290, 280)">
+                            <rect class="block-box" width="220" height="70" />
+                            <text x="110" y="30" class="block-title">Flutter Mobile App</text>
+                            <text x="110" y="50" class="block-label">QR Scanner & PDF View</text>
+                        </g>
+
+                        <!-- Output Column -->
+                        <text x="690" y="50" class="block-title" font-size="14">OUTPUT SYSTEM</text>
+                        <g transform="translate(610, 80)">
+                            <rect class="block-box-green" width="160" height="50" />
+                            <text x="80" y="30" class="block-title">Admin Dashboard stats</text>
+                        </g>
+                        <g transform="translate(610, 150)">
+                            <rect class="block-box-green" width="160" height="50" />
+                            <text x="80" y="30" class="block-title">Real-time Check-ins</text>
+                        </g>
+                        <g transform="translate(610, 220)">
+                            <rect class="block-box-green" width="160" height="50" />
+                            <text x="80" y="30" class="block-title">Digital Sheet Library</text>
+                        </g>
+                        <g transform="translate(610, 290)">
+                            <rect class="block-box-green" width="160" height="50" />
+                            <text x="80" y="30" class="block-title">Official PDF SKKK Reports</text>
+                        </g>
+
+                        <!-- Connectors -->
+                        <path d="M 190 105 L 290 105" class="block-conn" marker-end="url(#arrow)" />
+                        <path d="M 190 315 L 290 315" class="block-conn" marker-end="url(#arrow)" />
+                        <path d="M 400 150 L 400 185" class="block-conn" style="stroke: #a855f7;" marker-end="url(#arrow)" />
+                        <path d="M 400 280 L 400 245" class="block-conn" style="stroke: #a855f7;" marker-end="url(#arrow)" />
+                        <path d="M 510 115 L 610 115" class="block-conn" marker-end="url(#arrow)" />
+                        <path d="M 510 315 L 610 315" class="block-conn" marker-end="url(#arrow)" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: USE CASE DIAGRAM -->
+        <div class="slide" data-category="Architecture">
+            <div class="slide-grid" style="grid-template-columns: 280px 1fr;">
+                <div>
+                    <div class="slide-title-area">
+                        <span class="slide-tag">Interactions</span>
+                        <h2 class="slide-title" style="font-size: 1.8rem;">Use Case Diagram</h2>
+                    </div>
+                    <p class="slide-text" style="font-size: 0.85rem;">Displays three user roles (Superadmin, Admin, and Member) mapped against system permissions. All users must authenticate via Login.</p>
+                    <div class="highlight-box" style="margin-bottom: 0;">
+                        <h4 style="font-size: 0.9rem;">Separation of Concerns</h4>
+                        <p style="font-size: 0.8rem;">Members have write access only for personal profile edits and scanning valid QR tokens during check-in windows.</p>
+                    </div>
+                </div>
+                <div class="diagram-container">
+                    <svg viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <style>
+                            .actor-circle { fill: #1e293b; stroke: #3b82f6; stroke-width: 2; }
+                            .actor-line { stroke: #3b82f6; stroke-width: 2; }
+                            .usecase-ellipse { fill: #1e293b; stroke: #f59e0b; stroke-width: 1.5; rx: 70px; ry: 20px; }
+                            .usecase-text { fill: #f8fafc; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; text-anchor: middle; }
+                            .usecase-link { stroke: #94a3b8; stroke-width: 1; opacity: 0.6; }
+                        </style>
+
+                        <!-- Actor 1: Superadmin -->
+                        <g transform="translate(60, 90)">
+                            <circle cx="20" cy="20" r="12" class="actor-circle" />
+                            <line x1="20" y1="32" x2="20" y2="60" class="actor-line" />
+                            <line x1="5" y1="42" x2="35" y2="42" class="actor-line" />
+                            <line x1="20" y1="60" x2="8" y2="85" class="actor-line" />
+                            <line x1="20" y1="60" x2="32" y2="85" class="actor-line" />
+                            <text x="20" y="105" fill="#fff" font-family="'Outfit'" font-size="11" font-weight="700" text-anchor="middle">Superadmin</text>
+                        </g>
+
+                        <!-- Actor 2: Admin -->
+                        <g transform="translate(60, 240)">
+                            <circle cx="20" cy="20" r="12" class="actor-circle" />
+                            <line x1="20" y1="32" x2="20" y2="60" class="actor-line" />
+                            <line x1="5" y1="42" x2="35" y2="42" class="actor-line" />
+                            <line x1="20" y1="60" x2="8" y2="85" class="actor-line" />
+                            <line x1="20" y1="60" x2="32" y2="85" class="actor-line" />
+                            <text x="20" y="105" fill="#fff" font-family="'Outfit'" font-size="11" font-weight="700" text-anchor="middle">Admin</text>
+                        </g>
+
+                        <!-- Actor 3: Member -->
+                        <g transform="translate(720, 180)">
+                            <circle cx="20" cy="20" r="12" class="actor-circle" style="stroke: #10b981;" />
+                            <line x1="20" y1="32" x2="20" y2="60" class="actor-line" style="stroke: #10b981;" />
+                            <line x1="5" y1="42" x2="35" y2="42" class="actor-line" style="stroke: #10b981;" />
+                            <line x1="20" y1="60" x2="8" y2="85" class="actor-line" style="stroke: #10b981;" />
+                            <line x1="20" y1="60" x2="32" y2="85" class="actor-line" style="stroke: #10b981;" />
+                            <text x="20" y="105" fill="#fff" font-family="'Outfit'" font-size="11" font-weight="700" text-anchor="middle">Member</text>
+                        </g>
+
+                        <!-- Use Cases (Center) -->
+                        <!-- UC1: Manage Admins -->
+                        <g transform="translate(260, 50)">
+                            <ellipse cx="70" cy="20" class="usecase-ellipse" />
+                            <text x="70" y="23" class="usecase-text">Manage Admin Accounts</text>
+                        </g>
+                        <!-- UC2: Manage Members -->
+                        <g transform="translate(260, 100)">
+                            <ellipse cx="70" cy="20" class="usecase-ellipse" />
+                            <text x="70" y="23" class="usecase-text">Manage Member Data</text>
+                        </g>
+                        <!-- UC3: Manage Events -->
+                        <g transform="translate(260, 150)">
+                            <ellipse cx="70" cy="20" class="usecase-ellipse" />
+                            <text x="70" y="23" class="usecase-text">Manage Events & Schedules</text>
+                        </g>
+                        <!-- UC4: Manage Partiturs -->
+                        <g transform="translate(260, 200)">
+                            <ellipse cx="70" cy="20" class="usecase-ellipse" />
+                            <text x="70" y="23" class="usecase-text">Upload Score Partitur</text>
+                        </g>
+                        <!-- UC5: Generate QR Code -->
+                        <g transform="translate(260, 250)">
+                            <ellipse cx="70" cy="20" class="usecase-ellipse" />
+                            <text x="70" y="23" class="usecase-text">Generate Dynamic QR</text>
+                        </g>
+                        <!-- UC6: Generate SKKK -->
+                        <g transform="translate(260, 300)">
+                            <ellipse cx="70" cy="20" class="usecase-ellipse" />
+                            <text x="70" y="23" class="usecase-text">Export PDF SKKK Report</text>
+                        </g>
+                        <!-- UC7: Scan QR (Mobile) -->
+                        <g transform="translate(480, 120)">
+                            <ellipse cx="70" cy="20" class="usecase-ellipse" style="stroke: #10b981;" />
+                            <text x="70" y="23" class="usecase-text">Scan Attendance QR</text>
+                        </g>
+                        <!-- UC8: View Calendar -->
+                        <g transform="translate(480, 180)">
+                            <ellipse cx="70" cy="20" class="usecase-ellipse" style="stroke: #10b981;" />
+                            <text x="70" y="23" class="usecase-text">View Practice Calendar</text>
+                        </g>
+                        <!-- UC9: Preview Partitur -->
+                        <g transform="translate(480, 240)">
+                            <ellipse cx="70" cy="20" class="usecase-ellipse" style="stroke: #10b981;" />
+                            <text x="70" y="23" class="usecase-text">Preview Partitur PDF</text>
+                        </g>
+                        <!-- UC10: Edit Profile -->
+                        <g transform="translate(480, 300)">
+                            <ellipse cx="70" cy="20" class="usecase-ellipse" style="stroke: #10b981;" />
+                            <text x="70" y="23" class="usecase-text">Update Contact Details</text>
+                        </g>
+
+                        <!-- Actor Connections -->
+                        <!-- Superadmin connects to UC1 -->
+                        <line x1="95" y1="120" x2="260" y2="70" class="usecase-link" />
+                        <!-- Admin connects to UC2, UC3, UC4, UC5, UC6 -->
+                        <line x1="95" y1="270" x2="260" y2="120" class="usecase-link" />
+                        <line x1="95" y1="270" x2="260" y2="170" class="usecase-link" />
+                        <line x1="95" y1="270" x2="260" y2="220" class="usecase-link" />
+                        <line x1="95" y1="270" x2="260" y2="270" class="usecase-link" />
+                        <line x1="95" y1="270" x2="260" y2="320" class="usecase-link" />
+                        <!-- Member connects to UC7, UC8, UC9, UC10 -->
+                        <line x1="720" y1="220" x2="620" y2="140" class="usecase-link" />
+                        <line x1="720" y1="220" x2="620" y2="200" class="usecase-link" />
+                        <line x1="720" y1="220" x2="620" y2="260" class="usecase-link" />
+                        <line x1="720" y1="220" x2="620" y2="320" class="usecase-link" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: ERD -->
+        <div class="slide" data-category="Architecture">
+            <div class="slide-grid" style="grid-template-columns: 280px 1fr;">
+                <div>
+                    <div class="slide-title-area">
+                        <span class="slide-tag">Relational Database</span>
+                        <h2 class="slide-title" style="font-size: 1.8rem;">Entity Relationship Diagram</h2>
+                    </div>
+                    <p class="slide-text" style="font-size: 0.85rem;">The layout connects core entities. The database enforces foreign key constraints to link attendance logs to rosters and partiturs to events.</p>
+                    <div class="highlight-box" style="margin-bottom: 0;">
+                        <h4 style="font-size: 0.9rem;">Relational Constraints</h4>
+                        <p style="font-size: 0.8rem;">Includes the mandatory <code>approved_by</code> foreign key column in <code>peserta_acara</code> which references the <code>admin</code> table to secure audit checks.</p>
+                    </div>
+                </div>
+                <div class="diagram-container">
+                    <svg viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <style>
+                            .erd-table { fill: #1e293b; stroke: #3b82f6; stroke-width: 1.5; rx: 5px; }
+                            .erd-table-header { fill: #3b82f6; }
+                            .erd-table-title { fill: #fff; font-family: 'Outfit', sans-serif; font-size: 10px; font-weight: 700; }
+                            .erd-field { fill: #f8fafc; font-family: 'Inter', sans-serif; font-size: 8.5px; }
+                            .erd-pk { fill: #f59e0b; font-family: monospace; font-size: 8.5px; font-weight: 700; }
+                            .erd-fk { fill: #ec4899; font-family: monospace; font-size: 8.5px; font-weight: 700; }
+                            .erd-relation { stroke: #94a3b8; stroke-width: 1.2; fill: none; }
+                        </style>
+
+                        <!-- TABLE: admin -->
+                        <g transform="translate(20, 40)">
+                            <rect width="130" height="85" class="erd-table" />
+                            <path d="M 0 0 L 130 0 L 130 18 L 0 18 Z" class="erd-table-header" />
+                            <text x="8" y="13" class="erd-table-title">admin</text>
+                            <text x="8" y="32" class="erd-pk">PK</text><text x="25" y="32" class="erd-field">id (INT)</text>
+                            <text x="25" y="47" class="erd-field">nama (VARCHAR)</text>
+                            <text x="25" y="62" class="erd-field">email (VARCHAR)</text>
+                            <text x="25" y="77" class="erd-field">password (VARCHAR)</text>
+                        </g>
+
+                        <!-- TABLE: anggota -->
+                        <g transform="translate(20, 240)">
+                            <rect width="130" height="115" class="erd-table" style="stroke: #10b981;" />
+                            <path d="M 0 0 L 130 0 L 130 18 L 0 18 Z" class="erd-table-header" style="fill: #10b981;" />
+                            <text x="8" y="13" class="erd-table-title">anggota</text>
+                            <text x="8" y="32" class="erd-pk">PK</text><text x="25" y="32" class="erd-field">id (INT)</text>
+                            <text x="25" y="47" class="erd-field">nrp (VARCHAR)</text>
+                            <text x="25" y="62" class="erd-field">nama_lengkap (VARCHAR)</text>
+                            <text x="25" y="77" class="erd-field">bagian_suara (VARCHAR)</text>
+                            <text x="25" y="92" class="erd-field">kontak (VARCHAR)</text>
+                            <text x="25" y="107" class="erd-field">email (VARCHAR)</text>
+                        </g>
+
+                        <!-- TABLE: partitur -->
+                        <g transform="translate(630, 40)">
+                            <rect width="140" height="100" class="erd-table" />
+                            <path d="M 0 0 L 140 0 L 140 18 L 0 18 Z" class="erd-table-header" />
+                            <text x="8" y="13" class="erd-table-title">partitur</text>
+                            <text x="8" y="32" class="erd-pk">PK</text><text x="25" y="32" class="erd-field">id (INT)</text>
+                            <text x="25" y="47" class="erd-field">judul (VARCHAR)</text>
+                            <text x="25" y="62" class="erd-field">komposer (VARCHAR)</text>
+                            <text x="25" y="77" class="erd-field">jumlah_suara (INT)</text>
+                            <text x="25" y="92" class="erd-field">jenis_lagu (VARCHAR)</text>
+                        </g>
+
+                        <!-- TABLE: acara -->
+                        <g transform="translate(320, 40)">
+                            <rect width="150" height="130" class="erd-table" />
+                            <path d="M 0 0 L 150 0 L 150 18 L 0 18 Z" class="erd-table-header" />
+                            <text x="8" y="13" class="erd-table-title">acara</text>
+                            <text x="8" y="32" class="erd-pk">PK</text><text x="25" y="32" class="erd-field">id (INT)</text>
+                            <text x="25" y="47" class="erd-field">nama_acara (VARCHAR)</text>
+                            <text x="25" y="62" class="erd-field">tanggal (DATE)</text>
+                            <text x="25" y="77" class="erd-field">jenis_kegiatan (VARCHAR)</text>
+                            <text x="25" y="92" class="erd-field">jenis_skkk (VARCHAR)</text>
+                            <text x="8" y="107" class="erd-fk">FK</text><text x="25" y="107" class="erd-field">created_by (INT)</text>
+                            <text x="25" y="122" class="erd-field">status (VARCHAR)</text>
+                        </g>
+
+                        <!-- TABLE: peserta_acara -->
+                        <g transform="translate(190, 240)">
+                            <rect width="140" height="115" class="erd-table" style="stroke: #f59e0b;" />
+                            <path d="M 0 0 L 140 0 L 140 18 L 0 18 Z" class="erd-table-header" style="fill: #f59e0b;" />
+                            <text x="8" y="13" class="erd-table-title">peserta_acara</text>
+                            <text x="8" y="32" class="erd-pk">PK</text><text x="25" y="32" class="erd-field">id (INT)</text>
+                            <text x="25" y="47" class="erd-field">status_peserta (VARCHAR)</text>
+                            <text x="25" y="62" class="erd-field">approval_status (VARCHAR)</text>
+                            <text x="8" y="77" class="erd-fk">FK</text><text x="25" y="77" class="erd-field">anggota_id (INT)</text>
+                            <text x="8" y="92" class="erd-fk">FK</text><text x="25" y="92" class="erd-field">acara_id (INT)</text>
+                            <text x="8" y="107" class="erd-fk">FK</text><text x="25" y="107" class="erd-field">approved_by (INT)</text>
+                        </g>
+
+                        <!-- TABLE: latihan -->
+                        <g transform="translate(480, 240)">
+                            <rect width="130" height="115" class="erd-table" />
+                            <path d="M 0 0 L 130 0 L 130 18 L 0 18 Z" class="erd-table-header" />
+                            <text x="8" y="13" class="erd-table-title">latihan</text>
+                            <text x="8" y="32" class="erd-pk">PK</text><text x="25" y="32" class="erd-field">id (INT)</text>
+                            <text x="25" y="47" class="erd-field">tanggal (DATE)</text>
+                            <text x="25" y="62" class="erd-field">jam (VARCHAR)</text>
+                            <text x="25" y="77" class="erd-field">tipe_latihan (VARCHAR)</text>
+                            <text x="8" y="92" class="erd-fk">FK</text><text x="25" y="92" class="erd-field">acara_id (INT)</text>
+                            <text x="8" y="107" class="erd-fk">FK</text><text x="25" y="107" class="erd-field">created_by (INT)</text>
+                        </g>
+
+                        <!-- TABLE: absensi -->
+                        <g transform="translate(630, 240)">
+                            <rect width="140" height="100" class="erd-table" style="stroke: #10b981;" />
+                            <path d="M 0 0 L 140 0 L 140 18 L 0 18 Z" class="erd-table-header" style="fill: #10b981;" />
+                            <text x="8" y="13" class="erd-table-title">absensi</text>
+                            <text x="8" y="32" class="erd-pk">PK</text><text x="25" y="32" class="erd-field">id (INT)</text>
+                            <text x="25" y="47" class="erd-field">status (VARCHAR)</text>
+                            <text x="8" y="62" class="erd-fk">FK</text><text x="25" y="62" class="erd-field">latihan_id (INT)</text>
+                            <text x="8" y="77" class="erd-fk">FK</text><text x="25" y="77" class="erd-field">anggota_id (INT)</text>
+                            <text x="25" y="92" class="erd-field">waktu_checkin (DATETIME)</text>
+                        </g>
+
+                        <!-- Relations -->
+                        <!-- admin to acara (1-to-N) -->
+                        <path d="M 150 82.5 L 320 82.5" class="erd-relation" />
+                        <!-- anggota to peserta_acara (1-to-N) -->
+                        <path d="M 150 297.5 L 190 297.5" class="erd-relation" />
+                        <!-- acara to peserta_acara (1-to-N) -->
+                        <path d="M 395 170 L 395 210 L 260 210 L 260 240" class="erd-relation" />
+                        <!-- admin to peserta_acara (1-to-N) -->
+                        <path d="M 100 125 L 100 200 L 220 200 L 220 240" class="erd-relation" />
+                        <!-- acara to latihan (1-to-N) -->
+                        <path d="M 440 170 L 440 220 L 545 220 L 545 240" class="erd-relation" />
+                        <!-- anggota to absensi (1-to-N) -->
+                        <path d="M 85 355 L 85 390 L 700 390 L 700 340" class="erd-relation" />
+                        <!-- latihan to absensi (1-to-N) -->
+                        <path d="M 610 297.5 L 630 297.5" class="erd-relation" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: USER ACCEPTANCE TESTING (UAT) -->
+        <div class="slide" data-category="Testing & Evaluation">
+            <div class="slide-grid" style="grid-template-columns: 1fr 1.3fr;">
+                <div>
+                    <div class="slide-title-area">
+                        <span class="slide-tag">Functional Validation</span>
+                        <h2 class="slide-title">User Acceptance Testing (UAT)</h2>
+                    </div>
+                    <p class="slide-text">UAT was performed to ensure the system satisfies fungsionaris and members. Skenarios targeted core operations including dynamic check-ins, approvals, and document generations.</p>
+                    <div class="highlight-box" style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--sopran);">100% Pass Rate</h4>
+                        <p>All 28 defined test scenarios passed successfully with an operational error rate of 0%. Validated with signed off sheets by the PCU Choir president.</p>
+                    </div>
+                </div>
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.8rem; color: #fff;">Selected Core UAT Test Cases</h3>
+                    <div class="data-table-container" style="max-height: 310px; overflow-y: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%">No</th>
+                                    <th style="width: 35%">Scenario Target</th>
+                                    <th style="width: 45%">Expected Functional Behavior</th>
+                                    <th style="width: 15%">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Admin JWT Login</td>
+                                    <td>Grants authorization token & routes to Dashboard</td>
+                                    <td style="color: var(--sopran); font-weight: 600;">PASSED</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>Participant Approval Lock</td>
+                                    <td>Status is locked to prevent reversal. Moves data.</td>
+                                    <td style="color: var(--sopran); font-weight: 600;">PASSED</td>
+                                </tr>
+                                <tr>
+                                    <td>12</td>
+                                    <td>Rutin Latihan Absensi</td>
+                                    <td>Automatically builds alpha attendance for active members</td>
+                                    <td style="color: var(--sopran); font-weight: 600;">PASSED</td>
+                                </tr>
+                                <tr>
+                                    <td>16</td>
+                                    <td>15s QR Code Rotation</td>
+                                    <td>Silently rotates tokens every 15s to block fraud</td>
+                                    <td style="color: var(--sopran); font-weight: 600;">PASSED</td>
+                                </tr>
+                                <tr>
+                                    <td>17</td>
+                                    <td>Real-Time Check-In Sync</td>
+                                    <td>Web table updates in 5s via silent background fetch</td>
+                                    <td style="color: var(--sopran); font-weight: 600;">PASSED</td>
+                                </tr>
+                                <tr>
+                                    <td>20</td>
+                                    <td>Selective PDF SKKK</td>
+                                    <td>Checkbox exclusions recalculate and skip PDF generation</td>
+                                    <td style="color: var(--sopran); font-weight: 600;">PASSED</td>
+                                </tr>
+                                <tr>
+                                    <td>25</td>
+                                    <td>QR Scan Check-In</td>
+                                    <td>Mobile camera parses token, saves check-in time</td>
+                                    <td style="color: var(--sopran); font-weight: 600;">PASSED</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: USABILITY TESTING -->
+        <div class="slide" data-category="Testing & Evaluation">
+            <div class="slide-grid" style="grid-template-columns: 1.2fr 1fr;">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.8rem; color: #fff;">Usability Survey Results (15 Respondents)</h3>
+                    <div class="data-table-container" style="max-height: 330px; overflow-y: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 75%">Survey Statement (Likert Scale 1-5)</th>
+                                    <th style="width: 25%; text-align: center;">Score (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1. UI Admin and Mobile layout is clean and simple.</td>
+                                    <td style="text-align: center; color: #fff; font-weight: 600;">90.67%</td>
+                                </tr>
+                                <tr>
+                                    <td>2. Easy to join events and open sheets on Mobile.</td>
+                                    <td style="text-align: center; color: #fff; font-weight: 600;">90.67%</td>
+                                </tr>
+                                <tr>
+                                    <td>3. QR Scanner scans quickly and smoothly.</td>
+                                    <td style="text-align: center; color: #fff; font-weight: 600;">92.00%</td>
+                                </tr>
+                                <tr>
+                                    <td>4. System accelerates fungsionaris' workloads.</td>
+                                    <td style="text-align: center; color: #fff; font-weight: 600;">93.33%</td>
+                                </tr>
+                                <tr>
+                                    <td>5. Mobile PDF viewer eliminates need for physical papers.</td>
+                                    <td style="text-align: center; color: #fff; font-weight: 600;">94.67%</td>
+                                </tr>
+                                <tr>
+                                    <td>6. QR attendance is faster than paper signing.</td>
+                                    <td style="text-align: center; color: #fff; font-weight: 600;">94.67%</td>
+                                </tr>
+                                <tr>
+                                    <td>7. Dynamic QR rotation increases system security.</td>
+                                    <td style="text-align: center; color: #fff; font-weight: 600;">93.33%</td>
+                                </tr>
+                                <tr>
+                                    <td>8. Interative checkbox simplifies SKKK member selection.</td>
+                                    <td style="text-align: center; color: #fff; font-weight: 600;">94.67%</td>
+                                </tr>
+                                <tr>
+                                    <td>9. PDF SKKK export is clearly formatted and readable.</td>
+                                    <td style="text-align: center; color: #fff; font-weight: 600;">96.00%</td>
+                                </tr>
+                                <tr>
+                                    <td>10. System reduces manual data entry and calculation errors.</td>
+                                    <td style="text-align: center; color: #fff; font-weight: 600;">93.33%</td>
+                                </tr>
+                                <tr class="highlight-row">
+                                    <td>Overall Usability Score (Likert Average)</td>
+                                    <td style="text-align: center; color: var(--accent); font-weight: 700;">93.33%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <div class="slide-title-area">
+                        <span class="slide-tag">Usability Survey</span>
+                        <h2 class="slide-title">High User Satisfaction</h2>
+                    </div>
+                    <p class="slide-text">Usability was measured via 10 Likert scale indicators distributed to fungsionaris and members. Scoring is based on the Perceived Ease of Use (PEOU) and Perceived Usefulness (PU) frameworks.</p>
+                    <div class="highlight-box">
+                        <h4>"Very High" Rating</h4>
+                        <p>With an average score of 93.33%, the system is classified as highly usable. Users noted the convenience of digital PDF sheet previewing and dynamic QR codes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: EFFICIENCY TESTING -->
+        <div class="slide" data-category="Testing & Evaluation">
+            <div class="slide-grid" style="grid-template-columns: 1.25fr 1fr;">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.8rem; color: #fff;">Operational Administrative Efficiency (Time Comparison)</h3>
+                    <div class="data-table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Administrative Workflow (15 Members)</th>
+                                    <th style="text-align: center;">Manual (Old)</th>
+                                    <th style="text-align: center;">System (New)</th>
+                                    <th style="text-align: center;">Efficiency / Speedup</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1. Event creation & details posting</td>
+                                    <td style="text-align: center;">310 s</td>
+                                    <td style="text-align: center;">46 s</td>
+                                    <td style="text-align: center;"><span class="efficiency-badge">85.2% (6.7x)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2. Mobile member event registration (Join)</td>
+                                    <td style="text-align: center;">27 s</td>
+                                    <td style="text-align: center;">10 s</td>
+                                    <td style="text-align: center;"><span class="efficiency-badge">63.0% (2.7x)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>3. NRP verification & status approval</td>
+                                    <td style="text-align: center;">90 s</td>
+                                    <td style="text-align: center;">10 s</td>
+                                    <td style="text-align: center;"><span class="efficiency-badge">88.9% (9.0x)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>4. Music score partitur upload & link</td>
+                                    <td style="text-align: center;">1800 s</td>
+                                    <td style="text-align: center;">58 s</td>
+                                    <td style="text-align: center;"><span class="efficiency-badge">96.8% (31.0x)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>5. Practice attendance scan check-in</td>
+                                    <td style="text-align: center;">225 s</td>
+                                    <td style="text-align: center;">20 s</td>
+                                    <td style="text-align: center;"><span class="efficiency-badge">91.1% (11.2x)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>6. PDF SKKK report compile & export</td>
+                                    <td style="text-align: center;">2400 s</td>
+                                    <td style="text-align: center;">15 s</td>
+                                    <td style="text-align: center;"><span class="efficiency-badge">99.4% (160.0x)</span></td>
+                                </tr>
+                                <tr class="highlight-row">
+                                    <td>Overall Administrative Benchmarks</td>
+                                    <td style="text-align: center;">4852 s</td>
+                                    <td style="text-align: center;">159 s</td>
+                                    <td style="text-align: center;"><span class="efficiency-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--accent); border-color: rgba(245, 158, 11, 0.3);">33.7x Faster</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <div class="slide-title-area">
+                        <span class="slide-tag">Performance Benchmarks</span>
+                        <h2 class="slide-title">Significant Administrative Speedup</h2>
+                    </div>
+                    <p class="slide-text">Calculates time differences for fungsionaris to perform regular administrative tasks. The biggest efficiency gains are in SKKK reporting and partitur delivery.</p>
+                    <div class="highlight-box">
+                        <h4>Automated Database Queries</h4>
+                        <p>Manual compilation of event rosters used to take up to 40 minutes per event. Now, it is calculated in 0 seconds using dynamic database lookups, and exported to PDF in 15 seconds.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: CONCLUSION AND SUGGESTIONS -->
+        <div class="slide" data-category="Conclusion">
+            <div class="slide-grid">
+                <div>
+                    <div class="slide-title-area">
+                        <span class="slide-tag">Wrap Up</span>
+                        <h2 class="slide-title">Conclusion</h2>
+                    </div>
+                    <ul class="accent-list" style="gap: 1.2rem;">
+                        <li><strong>Proven Administrative Efficiency:</strong> The integrated system is <strong>33.775 times faster</strong> than manual processes on average. Full UAT pass rate reached 100% with an error rate of 0%.</li>
+                        <li><strong>Improved Attendance Accuracy:</strong> The dynamic QR code check-in reduced check-in time by <strong>91.1%</strong> (from 3-5 mins to 45 seconds). It lowered the data error rate from 8% to 0%.</li>
+                        <li><strong>Faster SKKK Reporting:</strong> Report preparation time dropped by <strong>97.5%</strong> (from 40 minutes to 1 minute 3 seconds).</li>
+                    </ul>
+                </div>
+                <div class="glass-panel">
+                    <span class="slide-tag" style="color: var(--accent);">Future Work</span>
+                    <h3 style="font-size: 1.3rem; color: #fff; margin-bottom: 1.2rem;">Suggestions for Extensions</h3>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div>
+                            <h4 style="font-size: 1rem; color: #fff;">1. Excel Export Functionality</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 3px; line-height: 1.5;">Add Excel (.xlsx) formats alongside PDF outputs for SKKK reporting to give fungsionaris more flexibility in parsing attendance data.</p>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 1rem; color: #fff;">2. Audit Trail Logger</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 3px; line-height: 1.5;">Implement an activity logger to trace admin modifications, improving security checks and data accountability.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Area -->
+    <footer>
+        <div class="nav-buttons">
+            <button class="nav-btn" id="prev-btn" onclick="prevSlide()" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Previous
+            </button>
+            <span class="shortcut-badge" style="display: flex; align-items: center; justify-content: center;">← / Left Click</span>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+            <span class="slide-counter" id="slide-num">1 / 12</span>
+        </div>
+
+        <div class="nav-buttons">
+            <span class="shortcut-badge" style="display: flex; align-items: center; justify-content: center;">→ / Space</span>
+            <button class="nav-btn" id="next-btn" onclick="nextSlide()">
+                Next
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Slide Navigation Engine Script -->
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const slideNumDisplay = document.getElementById('slide-num');
+        const progressFill = document.getElementById('progress-fill');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const sidebarList = document.getElementById('sidebar-list');
+        const sidebar = document.getElementById('sidebar');
+        
+        let currentSlideIndex = 0;
+        const totalSlides = slides.length;
+
+        // Presentation Timer variables
+        let timerInterval;
+        let timeRemaining = 300; // 5 minutes in seconds
+        let isTimerRunning = false;
+        const timerDisplay = document.getElementById('timer');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+
+        // Populate Sidebar list
+        const slideTitles = [
+            "Title Screen",
+            "Context & Administrative Bottlenecks",
+            "Research Questions & Scope",
+            "Integrated Solution Overview",
+            "Research Methodology Flowchart",
+            "System Block Diagram",
+            "Use Case Diagram",
+            "Entity Relationship Diagram (ERD)",
+            "User Acceptance Testing (UAT)",
+            "Usability Survey (Likert)",
+            "Operational Efficiency Benchmarks",
+            "Conclusion & Recommendations"
+        ];
+
+        function initSidebar() {
+            sidebarList.innerHTML = '';
+            slideTitles.forEach((title, idx) => {
+                const li = document.createElement('li');
+                li.className = `sidebar-item ${idx === 0 ? 'active' : ''}`;
+                li.innerText = `${idx + 1}. ${title}`;
+                li.onclick = () => {
+                    goToSlide(idx);
+                    toggleSidebar();
+                };
+                sidebarList.appendChild(li);
+            });
+        }
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+        }
+
+        // Navigation functions
+        function updateSlideControls() {
+            // Update slide visibility
+            slides.forEach((slide, idx) => {
+                if (idx === currentSlideIndex) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            // Update footer displays
+            slideNumDisplay.innerText = `${currentSlideIndex + 1} / ${totalSlides}`;
+            const pct = ((currentSlideIndex + 1) / totalSlides) * 100;
+            progressFill.style.width = `${pct}%`;
+
+            // Disable/enable buttons
+            prevBtn.disabled = currentSlideIndex === 0;
+            nextBtn.disabled = currentSlideIndex === totalSlides - 1;
+
+            // Update sidebar active item
+            const items = document.querySelectorAll('.sidebar-item');
+            items.forEach((item, idx) => {
+                if (idx === currentSlideIndex) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        function goToSlide(idx) {
+            if (idx >= 0 && idx < totalSlides) {
+                currentSlideIndex = idx;
+                updateSlideControls();
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlideIndex < totalSlides - 1) {
+                currentSlideIndex++;
+                updateSlideControls();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                updateSlideControls();
+            }
+        }
+
+        // Timer controller
+        function toggleTimer() {
+            if (isTimerRunning) {
+                // Pause
+                clearInterval(timerInterval);
+                playPauseBtn.innerHTML = `<svg id="play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+                isTimerRunning = false;
+            } else {
+                // Start
+                playPauseBtn.innerHTML = `<svg id="pause-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+                isTimerRunning = true;
+                timerInterval = setInterval(() => {
+                    if (timeRemaining > 0) {
+                        timeRemaining--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        timerDisplay.style.color = '#ef4444';
+                        timerDisplay.innerText = "00:00";
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeRemaining = 300;
+            isTimerRunning = false;
+            playPauseBtn.innerHTML = `<svg id="play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+            timerDisplay.style.color = 'var(--accent)';
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeRemaining / 60);
+            const secs = timeRemaining % 60;
+            timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Key Listeners
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            } else if (e.key === 'Escape') {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Click to slide on body background
+        document.body.addEventListener('click', (e) => {
+            // Click outside buttons & sidebars transitions forward
+            if (!e.target.closest('button') && !e.target.closest('.sidebar') && !e.target.closest('a') && !e.target.closest('input')) {
+                nextSlide();
+            }
+        });
+
+        // Initialize presentation
+        initSidebar();
+        updateSlideControls();
+        resetTimer();
+    </script>
+</body>
+</html>

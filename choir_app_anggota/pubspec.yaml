@@ -17,6 +17,7 @@ dependencies:
   url_launcher: ^6.3.0
   intl: ^0.20.0
   lucide_icons: ^0.257.0
+  flutter_local_notifications: ^22.0.1
 
 dev_dependencies:
   flutter_test:

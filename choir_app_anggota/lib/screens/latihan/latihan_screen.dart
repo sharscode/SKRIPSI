@@ -121,7 +121,7 @@ class _LatihanScreenState extends State<LatihanScreen> {
                             children: [
                               Icon(Icons.sync_rounded, size: 18, color: AppColors.primary500),
                               SizedBox(width: 10),
-                              Text('Latihan Reguler', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.neutral700)),
+                              Text('Latihan UKM', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.neutral700)),
                             ],
                           ),
                         ),

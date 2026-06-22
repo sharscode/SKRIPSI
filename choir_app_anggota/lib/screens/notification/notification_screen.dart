@@ -42,7 +42,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             TextButton(
               onPressed: () => provider.markAllRead(),
               child: const Text(
-                'Tandai Semua',
+                'Tandai Sudah Dibaca',
                 style: TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ),
@@ -54,7 +54,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               ? const EmptyState(
                   emoji: '🔔',
                   title: 'Belum ada notifikasi',
-                  subtitle: 'Notifikasi dari admin akan muncul di sini',
+                  subtitle: 'Notifikasi akan muncul di sini',
                 )
               : RefreshIndicator(
                   color: AppColors.primary400,
@@ -162,20 +162,26 @@ class _NotifCard extends StatelessWidget {
 
   Color _tipeColor(String tipe) {
     switch (tipe) {
-      case 'latihan': return AppColors.primary400;
-      case 'acara': return AppColors.sopran;
+      case 'latihan':
+      case 'reminder_latihan': return AppColors.primary400;
+      case 'acara':
+      case 'info_acara': return AppColors.sopran;
       case 'absensi': return AppColors.success;
-      case 'skkk': return AppColors.warning;
+      case 'skkk':
+      case 'approval': return AppColors.warning;
       default: return AppColors.neutral400;
     }
   }
 
   IconData _tipeIcon(String tipe) {
     switch (tipe) {
-      case 'latihan': return Icons.music_note_rounded;
-      case 'acara': return Icons.event_rounded;
+      case 'latihan':
+      case 'reminder_latihan': return Icons.music_note_rounded;
+      case 'acara':
+      case 'info_acara': return Icons.event_rounded;
       case 'absensi': return Icons.check_circle_outline;
-      case 'skkk': return Icons.workspace_premium_outlined;
+      case 'skkk':
+      case 'approval': return Icons.workspace_premium_outlined;
       default: return Icons.notifications_outlined;
     }
   }

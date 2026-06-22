@@ -78,7 +78,27 @@ class _LoginScreenState extends State<LoginScreen>
               children: [
                 const SizedBox(height: 60),
                 // Logo & Title
-                const Text('🎶', style: TextStyle(fontSize: 56)),
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/images/pcu_choir_logo.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 const Text(
                   'PCU Choir',

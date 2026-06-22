@@ -101,10 +101,36 @@ export default function AcaraDetailPage() {
 
   const openAddPeserta = async () => {
     try {
-      const res = await api.get('/anggota?limit=100');
+      // 1. Fetch active period
+      const periodRes = await api.get('/settings/active-periode');
+      const activePeriod = periodRes.data.data?.periode || '';
+
+      // 2. Fetch active members for that period
+      const res = await api.get('/anggota-ukm', {
+        params: {
+          periode: activePeriod,
+          status_keaktifan: 'aktif'
+        }
+      });
+
       const registeredIds = peserta.map((p) => p.anggota_id);
-      const available = (res.data.data.data || []).filter((a) => !registeredIds.includes(a.id));
-      setAnggotaList(available);
+      
+      // 3. Map members to standard format, filtering out registered ones and preventing duplicates
+      const uniqueAvailable = [];
+      const seen = new Set(registeredIds);
+      for (const a of (res.data.data || [])) {
+        if (a.anggota_id && !seen.has(a.anggota_id)) {
+          seen.add(a.anggota_id);
+          uniqueAvailable.push({
+            id: a.anggota_id,
+            nrp: a.nrp,
+            nama_lengkap: a.nama_lengkap,
+            bagian_suara: a.bagian_suara
+          });
+        }
+      }
+
+      setAnggotaList(uniqueAvailable);
     } catch {
       toast('Gagal memuat daftar anggota.', 'error');
     }
@@ -584,7 +610,7 @@ export default function AcaraDetailPage() {
             label="Pilih Anggota"
             placeholder="Pilih nama / NRP..."
             icon="👤"
-            options={anggotaList.map((a) => ({ value: a.id, label: `${a.nrp} — ${a.nama_lengkap} (${a.bagian_suara})` }))}
+            options={anggotaList.map((a) => ({ value: a.id, label: `${a.nama_lengkap} - ${a.nrp} (${a.bagian_suara})` }))}
             value={selectedAnggota}
             onChange={(e) => setSelectedAnggota(e.target.value)}
           />

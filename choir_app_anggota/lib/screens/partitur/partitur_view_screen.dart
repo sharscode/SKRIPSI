@@ -27,13 +27,6 @@ class PartiturViewScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.open_in_new),
-            tooltip: 'Buka di browser',
-            onPressed: () => _openInBrowser(context, pdfUrl),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -116,12 +109,6 @@ class PartiturViewScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back, size: 16),
-                      label: const Text('Kembali ke koleksi'),
                     ),
                   ],
                 ),

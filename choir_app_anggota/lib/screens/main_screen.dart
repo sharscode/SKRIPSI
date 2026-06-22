@@ -41,10 +41,19 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch notifications on start
+    // Fetch notifications on start and start periodic polling
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<NotificationProvider>().fetchNotifications();
+      final provider = context.read<NotificationProvider>();
+      provider.fetchNotifications();
+      provider.startPolling();
     });
+  }
+
+  @override
+  void dispose() {
+    // Stop polling when main screen is disposed (e.g. on logout)
+    context.read<NotificationProvider>().stopPolling();
+    super.dispose();
   }
 
   @override

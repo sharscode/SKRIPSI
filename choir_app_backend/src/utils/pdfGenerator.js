@@ -37,13 +37,7 @@ function generateSkkkPdf(data) {
   // --- Official Document Title ---
   doc.fontSize(13).font('Helvetica-Bold')
     .fillColor('#0F172A')
-    .text('SURAT KETERANGAN KEGIATAN KEMAHASISWAAN', { align: 'center' });
-  
-  // Registration Document Numbering
-  const yearOfEvent = event.tanggal ? new Date(event.tanggal).getFullYear() : new Date().getFullYear();
-  doc.fontSize(9.5).font('Helvetica-Oblique')
-    .fillColor('#64748B')
-    .text(`No. Reg: SKKK/UKM-PS/${event.id || '00'}/${yearOfEvent}`, { align: 'center' });
+    .text('Satuan Kredit Kegiatan Kemahasiswaan', { align: 'center' });
   
   doc.moveDown(1.2);
 
@@ -138,35 +132,7 @@ function generateSkkkPdf(data) {
     rowY += 17;
   });
 
-  // --- Official Footer / Signature Block ---
-  const today = new Date().toLocaleDateString('id-ID', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
 
-  // Ensure signature block is not orphaned on a separate page
-  if (rowY > 640) {
-    doc.addPage();
-    rowY = 50;
-  }
-
-  const footerY = rowY + 25;
-  doc.fillColor('#1E293B');
-  doc.fontSize(9.5).font('Helvetica')
-    .text(`Surabaya, ${today}`, 350, footerY, { width: 195, align: 'center' });
-  
-  doc.text('Mengetahui,', 350, footerY + 14, { width: 195, align: 'center' });
-  doc.text('Penanggung Jawab Kegiatan', 350, footerY + 28, { width: 195, align: 'center' });
-
-  // Elegant Signature Line Placeholder
-  doc.moveTo(370, footerY + 82).lineTo(525, footerY + 82).lineWidth(0.75).stroke('#CBD5E1');
-
-  doc.fontSize(9.5).font('Helvetica-Bold')
-    .fillColor('#0F172A')
-    .text(event.penanggung_jawab || 'Penanggung Jawab', 350, footerY + 88, { width: 195, align: 'center' });
-  
-  doc.fontSize(8.5).font('Helvetica')
-    .fillColor('#64748B')
-    .text('UKM Paduan Suara', 350, footerY + 102, { width: 195, align: 'center' });
 
   doc.end();
   return doc;

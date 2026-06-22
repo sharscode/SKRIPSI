@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../models/partitur_model.dart';
 import '../../config/routes.dart';
@@ -21,7 +20,7 @@ class _PartiturListScreenState extends State<PartiturListScreen> {
   final _searchCtrl = TextEditingController();
   String _selectedJenis = '';
 
-  final _jenisList = ['', 'Hymn', 'Klasik', 'Oratorio', 'Pop', 'Rohani', 'Nasional', 'Lainnya'];
+  List<String> _jenisList = ['', 'Hymn', 'Klasik', 'Oratorio', 'Pop', 'Rohani', 'Nasional'];
 
   @override
   void initState() {
@@ -42,6 +41,17 @@ class _PartiturListScreenState extends State<PartiturListScreen> {
     if (result['success'] == true) {
       final list = (result['data'] as List<dynamic>? ?? []);
       _all = list.map((e) => PartiturModel.fromJson(e as Map<String, dynamic>)).toList();
+      
+      // Extract custom genres dynamically
+      final defaultGenres = ['Hymn', 'Klasik', 'Oratorio', 'Pop', 'Rohani', 'Nasional'];
+      final customGenres = <String>{};
+      for (final p in _all) {
+        if (p.jenisLagu.isNotEmpty && !defaultGenres.contains(p.jenisLagu)) {
+          customGenres.add(p.jenisLagu);
+        }
+      }
+      _jenisList = ['', ...defaultGenres, ...customGenres];
+
       _applyFilter();
     }
     setState(() => _loading = false);
@@ -131,40 +141,50 @@ class _PartiturListScreenState extends State<PartiturListScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  // Jenis chips
-                  SizedBox(
-                    height: 34,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _jenisList.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 6),
-                      itemBuilder: (_, i) {
-                        final j = _jenisList[i];
-                        final selected = _selectedJenis == j;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() => _selectedJenis = j);
-                            _applyFilter();
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: selected ? AppColors.primary400 : AppColors.neutral100,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.neutral200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedJenis,
+                        isExpanded: true,
+                        icon: const Icon(Icons.arrow_drop_down, color: AppColors.neutral500),
+                        dropdownColor: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        items: _jenisList.map((j) {
+                          return DropdownMenuItem<String>(
+                            value: j,
                             child: Text(
                               j.isEmpty ? 'Semua' : j,
-                              style: TextStyle(
-                                fontSize: 12,
+                              style: const TextStyle(
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: selected ? Colors.white : AppColors.neutral600,
+                                color: AppColors.neutral700,
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _selectedJenis = val;
+                            });
+                            _applyFilter();
+                          }
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -216,6 +236,7 @@ class _PartiturListScreenState extends State<PartiturListScreen> {
       ),
     );
   }
+
 }
 
 class _PartiturCard extends StatelessWidget {
@@ -237,39 +258,58 @@ class _PartiturCard extends StatelessWidget {
           // Music note header
           Container(
             height: 100,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  _jenisColor(partitur.jenisLagu),
-                  _jenisColor(partitur.jenisLagu).withOpacity(0.7),
-                ],
-              ),
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              color: Colors.white,
             ),
             child: Stack(
               children: [
-                Center(
-                  child: Text(
-                    _jenisEmoji(partitur.jenisLagu),
-                    style: const TextStyle(fontSize: 40),
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    child: Image.asset(
+                      'assets/images/partitur_placeholder.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.12),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 Positioned(
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.25),
+                      color: _jenisColor(partitur.jenisLagu).withOpacity(0.9),
                       borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Text(
                       '${partitur.jumlahSuara} Suara',
                       style: const TextStyle(
                         fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                         color: Colors.white,
                       ),
                     ),
@@ -343,15 +383,4 @@ class _PartiturCard extends StatelessWidget {
     }
   }
 
-  String _jenisEmoji(String jenis) {
-    switch (jenis.toLowerCase()) {
-      case 'hymn': return '⛪';
-      case 'klasik': return '🎻';
-      case 'oratorio': return '🎼';
-      case 'pop': return '🎤';
-      case 'rohani': return '✝️';
-      case 'nasional': return '🏛️';
-      default: return '🎶';
-    }
-  }
 }

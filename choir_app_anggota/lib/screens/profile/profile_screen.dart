@@ -130,37 +130,11 @@ class ProfileScreen extends StatelessWidget {
                   // Menu items
                   AppCard(
                     padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        _menuItem(
-                          context,
-                          icon: Icons.edit_outlined,
-                          label: 'Edit Profil',
-                          onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _menuItem(
-                          context,
-                          icon: Icons.notifications_outlined,
-                          label: 'Notifikasi',
-                          badge: unread,
-                          onTap: () => Navigator.pushNamed(context, AppRoutes.notifications),
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _menuItem(
-                          context,
-                          icon: Icons.history_rounded,
-                          label: 'Riwayat Absensi',
-                          onTap: () => Navigator.pushNamed(context, AppRoutes.absensiHistory),
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _menuItem(
-                          context,
-                          icon: Icons.qr_code_scanner_rounded,
-                          label: 'Scan QR Absensi',
-                          onTap: () => Navigator.pushNamed(context, AppRoutes.scanQr),
-                        ),
-                      ],
+                    child: _menuItem(
+                      context,
+                      icon: Icons.edit_outlined,
+                      label: 'Edit Profil',
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
                     ),
                   ),
                   const SizedBox(height: 12),

@@ -75,6 +75,56 @@ async function syncAbsensiList(latihanId, tipe_latihan, acara_id) {
   }
 }
 
+async function sendLatihanNotifications(latihanId) {
+  const pool = await getPool();
+  const result = await pool.request().input('id', sql.Int, latihanId).query(`
+    SELECT l.*, a.nama_acara FROM latihan l LEFT JOIN acara a ON l.acara_id=a.id WHERE l.id=@id`);
+  const l = result.recordset[0];
+  if (!l) return;
+
+  const dateStr = new Date(l.tanggal).toLocaleDateString('id-ID', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+  
+  let memberIds = [];
+  let pesan = '';
+  if (l.tipe_latihan === 'rutin') {
+    const membersResult = await pool.request().query(`
+      SELECT a.id FROM anggota a
+      JOIN anggota_ukm au ON a.id = au.anggota_id
+      WHERE au.periode = (SELECT setting_value FROM settings WHERE setting_key = 'active_periode')
+        AND au.status_keaktifan = 'aktif'
+    `);
+    memberIds = membersResult.recordset.map(r => r.id);
+    pesan = `Latihan UKM hari ${dateStr} pukul ${l.jam} WIB di ${l.lokasi}.`;
+  } else if (l.tipe_latihan === 'sekali' && l.acara_id) {
+    const membersResult = await pool.request()
+      .input('acara_id', sql.Int, l.acara_id)
+      .query(`
+        SELECT anggota_id FROM peserta_acara
+        WHERE acara_id = @acara_id AND approval_status = 'disetujui'
+      `);
+    memberIds = membersResult.recordset.map(r => r.anggota_id);
+    pesan = `Latihan "${l.nama_acara}" hari ${dateStr} pukul ${l.jam} WIB di ${l.lokasi}.`;
+  }
+
+  const notificationService = require('../notification/notification.service');
+  for (const memberId of memberIds) {
+    try {
+      await notificationService.send({
+        judul: 'Pengingat Latihan',
+        pesan: pesan,
+        tipe: 'reminder_latihan',
+        anggota_id: memberId,
+        latihan_id: l.id,
+        acara_id: l.acara_id || null
+      });
+    } catch (err) {
+      console.error(`Failed to send notification to member ${memberId}:`, err);
+    }
+  }
+}
+
 async function create(data, adminId) {
   if (data.tipe_latihan === 'sekali' && !data.acara_id) throw { statusCode: 400, message: 'Latihan sekali harus memiliki acara_id.' };
   if (data.tipe_latihan === 'rutin' && data.acara_id) throw { statusCode: 400, message: 'Latihan rutin tidak boleh memiliki acara_id.' };
@@ -90,6 +140,12 @@ async function create(data, adminId) {
   
   const newLatihanId = result.recordset[0].id;
   await syncAbsensiList(newLatihanId, data.tipe_latihan, data.acara_id);
+
+  try {
+    await sendLatihanNotifications(newLatihanId);
+  } catch (err) {
+    console.error('Failed to send practice notifications:', err);
+  }
   
   return getById(newLatihanId);
 }
@@ -106,6 +162,12 @@ async function update(id, data) {
     .query('UPDATE latihan SET tanggal=@tanggal, jam=@jam, lokasi=@lokasi, keterangan=@keterangan, tipe_latihan=@tipe_latihan, waktu_notifikasi=@waktu_notifikasi, acara_id=@acara_id WHERE id=@id');
   
   await syncAbsensiList(id, data.tipe_latihan, data.acara_id);
+
+  try {
+    await sendLatihanNotifications(id);
+  } catch (err) {
+    console.error('Failed to send practice update notifications:', err);
+  }
   
   return getById(id);
 }

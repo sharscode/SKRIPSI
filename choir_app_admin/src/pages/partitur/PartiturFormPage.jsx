@@ -20,6 +20,25 @@ export default function PartiturFormPage() {
   const [fileName, setFileName] = useState('');
   const [errors, setErrors] = useState({});
   const [customJenis, setCustomJenis] = useState('');
+  const [genres, setGenres] = useState(['Hymn', 'Klasik', 'Oratorio', 'Pop', 'Rohani', 'Nasional']);
+
+  useEffect(() => {
+    // Fetch unique custom genres from database
+    api.get('/partitur')
+      .then((res) => {
+        const defaultGenres = ['Hymn', 'Klasik', 'Oratorio', 'Pop', 'Rohani', 'Nasional'];
+        const unique = new Set(defaultGenres);
+        if (res.data && res.data.data) {
+          res.data.data.forEach((p) => {
+            if (p.jenis_lagu && !unique.has(p.jenis_lagu)) {
+              unique.add(p.jenis_lagu);
+            }
+          });
+        }
+        setGenres(Array.from(unique));
+      })
+      .catch((err) => console.error('Failed to load unique genres', err));
+  }, []);
 
   useEffect(() => {
     if (isEdit) {
@@ -29,7 +48,7 @@ export default function PartiturFormPage() {
         if (presetOptions.includes(d.jenis_lagu)) {
           setForm({ judul: d.judul, komposer: d.komposer, jumlah_suara: d.jumlah_suara, jenis_lagu: d.jenis_lagu });
         } else {
-          setForm({ judul: d.judul, komposer: d.komposer, jumlah_suara: d.jumlah_suara, jenis_lagu: 'Lainnya' });
+          setForm({ judul: d.judul, komposer: d.komposer, jumlah_suara: d.jumlah_suara, jenis_lagu: d.jenis_lagu });
           setCustomJenis(d.jenis_lagu || '');
         }
         setFileName(d.file_pdf?.split('/').pop() || '');
@@ -81,7 +100,7 @@ export default function PartiturFormPage() {
     } finally { setLoading(false); }
   };
 
-  const jenisOptions = ['Hymn', 'Klasik', 'Oratorio', 'Pop', 'Rohani', 'Nasional', 'Lainnya'];
+  const jenisOptions = [...genres, 'Lainnya'];
 
   return (
     <div className="page anim-slide-up">

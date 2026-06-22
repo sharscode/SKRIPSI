@@ -34,12 +34,18 @@ function StatCard({ icon, label, value, color, loading, delay = 0 }) {
 export default function DashboardPage() {
   const { user } = useAuth();
   const toast = useToast();
-  const [stats, setStats]     = useState(null);
-  const [events, setEvents]   = useState([]);
-  const [latihan, setLatihan] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [periode, setPeriode] = useState('2025/2026');
-  const [periods, setPeriods] = useState([]);
+  const [stats, setStats]       = useState(null);
+  const [events, setEvents]     = useState([]);
+  const [latihan, setLatihan]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [periode, setPeriode]   = useState('2025/2026');
+  const [periods, setPeriods]   = useState([]);
+
+  // Raw datasets for dynamic filtering
+  const [rawEvents, setRawEvents]     = useState([]);
+  const [rawLatihan, setRawLatihan]   = useState([]);
+  const [rawMembers, setRawMembers]   = useState([]);
+  const [totalAnggota, setTotalAnggota] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -50,26 +56,51 @@ export default function DashboardPage() {
       api.get('/settings/active-periode'),
       api.get('/settings/periodes'),
     ]).then(([a, ac, l, aukm, s, p]) => {
-      const aktifAcara   = ac.data.data.filter((e) => e.status === 'aktif');
-      const totalAnggota = a.data.data.pagination?.total ?? a.data.data.length;
-      const anggotaAktif = aukm.data.data.length;
       const activePeriode = s.data.data?.periode || '2025/2026';
+      const totAnggota = a.data.data.pagination?.total ?? a.data.data.length;
       
-      setStats({
-        totalAnggota,
-        anggotaAktif,
-        acaraAktif:   aktifAcara.length,
-        totalLatihan: l.data.data.length,
-      });
+      setTotalAnggota(totAnggota);
+      setRawEvents(ac.data.data || []);
+      setRawLatihan(l.data.data || []);
+      setRawMembers(aukm.data.data || []);
       setPeriode(activePeriode);
       setPeriods(p.data.data || []);
-      setEvents(aktifAcara.slice(0, 5));
-      const upcoming = l.data.data
-        .filter((lt) => new Date(lt.tanggal) >= new Date())
-        .slice(0, 5);
-      setLatihan(upcoming);
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  // Compute statistics whenever selected period or datasets change
+  useEffect(() => {
+    if (loading) return;
+
+    // Helper to check if a date falls within a YYYY/YYYY academic period (August 1st to July 31st)
+    const isDateInPeriod = (dateStr, periodStr) => {
+      if (!dateStr || !periodStr) return false;
+      const [startYear, endYear] = periodStr.split('/').map(Number);
+      const date = new Date(dateStr);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1; // 1-12
+      return month >= 8 ? year === startYear : year === endYear;
+    };
+
+    const activeEvents = rawEvents.filter(e => e.status === 'aktif' && isDateInPeriod(e.tanggal, periode));
+    const activeMembersCount = rawMembers.filter(m => m.periode === periode).length;
+    const periodLatihan = rawLatihan.filter(lt => isDateInPeriod(lt.tanggal, periode));
+
+    setStats({
+      totalAnggota,
+      anggotaAktif: activeMembersCount,
+      acaraAktif:   activeEvents.length,
+      totalLatihan: periodLatihan.length,
+    });
+
+    setEvents(activeEvents.slice(0, 5));
+
+    const upcoming = periodLatihan
+      .filter((lt) => new Date(lt.tanggal) >= new Date())
+      .slice(0, 5);
+      
+    setLatihan(upcoming);
+  }, [periode, rawEvents, rawLatihan, rawMembers, totalAnggota, loading]);
 
   const handleUpdateActivePeriod = async (newPeriod) => {
     try {

@@ -126,16 +126,19 @@ class _SplashScreenState extends State<SplashScreen>
                           height: 110,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 2,
-                            ),
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
                           ),
-                          child: const Center(
-                            child: Text(
-                              '🎶',
-                              style: TextStyle(fontSize: 52),
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/images/pcu_choir_logo.png',
+                              fit: BoxFit.cover,
                             ),
                           ),
                         ),

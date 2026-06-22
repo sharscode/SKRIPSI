@@ -40,9 +40,19 @@ export default function AnggotaUkmPage() {
 
   useEffect(() => {
     fetchPeriods();
+    
+    // Fetch active period and set it as the default filter
+    api.get('/settings/active-periode')
+      .then((res) => {
+        const activePeriod = res.data.data?.periode || '';
+        setPeriode(activePeriod);
+        setForm((f) => ({ ...f, periode: activePeriod }));
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
+    // Only fetch data if we have resolved the initial default period or if it is intentionally empty
     fetchData();
   }, [periode, status]);
 
@@ -157,7 +167,7 @@ export default function AnggotaUkmPage() {
       >
         <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           <Select id="modal-anggota" label="Anggota" placeholder="Pilih anggota..." icon="👤"
-            options={anggotaList.map((a) => ({ value: a.id, label: `${a.nrp} — ${a.nama_lengkap}` }))}
+            options={anggotaList.map((a) => ({ value: a.id, label: `${a.nama_lengkap} - ${a.nrp}` }))}
             value={form.anggota_id} onChange={(e) => setForm({ ...form, anggota_id: +e.target.value })} />
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

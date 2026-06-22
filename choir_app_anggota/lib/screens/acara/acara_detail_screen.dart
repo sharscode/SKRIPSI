@@ -357,11 +357,18 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
         subtitle: 'Jadwal latihan untuk acara ini akan ditampilkan di sini',
       );
     }
+
+    // Sort from oldest to newest based on date string YYYY-MM-DD
+    final sortedLatihan = List<LatihanModel>.from(_latihan);
+    sortedLatihan.sort((a, b) => a.tanggal.compareTo(b.tanggal));
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: _latihan.length,
+      itemCount: sortedLatihan.length,
       itemBuilder: (_, i) {
-        final l = _latihan[i];
+        final l = sortedLatihan[i];
+        final formattedDate = formatDate(l.tanggal, withDay: false);
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: AppCard(
@@ -375,14 +382,15 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
                     color: AppColors.primary50,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(formatDayMonth(l.tanggal),
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary500, height: 1)),
-                      Text(formatMonth(l.tanggal),
-                          style: const TextStyle(fontSize: 10, color: AppColors.primary300)),
-                    ],
+                  child: Center(
+                    child: Text(
+                      '${i + 1}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary500,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -390,9 +398,23 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(l.jam, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.neutral800)),
-                      const SizedBox(height: 2),
-                      Text(l.lokasi, style: const TextStyle(fontSize: 13, color: AppColors.neutral500), overflow: TextOverflow.ellipsis),
+                      Text(
+                        '$formattedDate · ${l.jam} WIB',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.neutral800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l.lokasi,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.neutral500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ),
                 ),

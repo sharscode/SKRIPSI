@@ -17,7 +17,7 @@ class _AbsensiHistoryScreenState extends State<AbsensiHistoryScreen> {
   final _api = ApiService();
   List<AbsensiModel> _history = [];
   bool _loading = true;
-  Map<String, int> _stats = {'hadir': 0, 'izin': 0, 'sakit': 0, 'alpha': 0};
+  String _selectedFilter = 'Semua';
 
   @override
   void initState() {
@@ -38,23 +38,28 @@ class _AbsensiHistoryScreenState extends State<AbsensiHistoryScreen> {
       _history = list
           .map((e) => AbsensiModel.fromJson(e as Map<String, dynamic>))
           .toList();
-
-      // Calculate stats
-      _stats = {
-        'hadir': _history.where((a) => a.status == 'hadir').length,
-        'izin': _history.where((a) => a.status == 'izin').length,
-        'sakit': _history.where((a) => a.status == 'sakit').length,
-        'alpha': _history.where((a) => a.status == 'alpha').length,
-      };
     }
     setState(() => _loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final total = _history.length;
+    final filteredHistory = _history.where((a) {
+      if (_selectedFilter == 'Semua') return true;
+      if (_selectedFilter == 'UKM') return a.isRutin;
+      if (_selectedFilter == 'Acara') return !a.isRutin;
+      return true;
+    }).toList();
+
+    final total = filteredHistory.length;
+    final activeStats = {
+      'hadir': filteredHistory.where((a) => a.status == 'hadir').length,
+      'izin': filteredHistory.where((a) => a.status == 'izin').length,
+      'sakit': filteredHistory.where((a) => a.status == 'sakit').length,
+      'alpha': filteredHistory.where((a) => a.status == 'alpha').length,
+    };
     final pct = total > 0
-        ? ((_stats['hadir']! / total) * 100).toStringAsFixed(1)
+        ? ((activeStats['hadir']! / total) * 100).toStringAsFixed(1)
         : '0.0';
 
     return Scaffold(
@@ -87,14 +92,15 @@ class _AbsensiHistoryScreenState extends State<AbsensiHistoryScreen> {
                 child: _loading
                     ? const SizedBox.shrink()
                     : Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 60, 20, 60),
+                        padding: const EdgeInsets.fromLTRB(16, 60, 16, 60),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _statPill('$pct%', 'Kehadiran', Colors.white),
-                            _statPill('${_stats['hadir']}', 'Hadir', AppColors.successLight),
-                            _statPill('${_stats['izin']}', 'Izin', AppColors.warningLight),
-                            _statPill('${_stats['alpha']}', 'Alpha', AppColors.dangerLight),
+                            _statPill('${activeStats['hadir']}', 'Hadir', AppColors.successLight),
+                            _statPill('${activeStats['izin']}', 'Izin', AppColors.warningLight),
+                            _statPill('${activeStats['sakit']}', 'Sakit', const Color(0xFFED8936)),
+                            _statPill('${activeStats['alpha']}', 'Alpha', AppColors.dangerLight),
                           ],
                         ),
                       ),
@@ -123,73 +129,164 @@ class _AbsensiHistoryScreenState extends State<AbsensiHistoryScreen> {
                 subtitle: 'Riwayat kehadiran kamu akan muncul di sini',
               ),
             )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (_, i) {
-                    final a = _history[i];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: AppCard(
-                        padding: const EdgeInsets.all(14),
-                        child: Row(
-                          children: [
-                            // Status indicator
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: AppColors.attendanceStatusColor(a.status).withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                _statusIcon(a.status),
-                                color: AppColors.attendanceStatusColor(a.status),
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    formatDate(a.tanggalLatihan, withDay: false),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.neutral800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    a.lokasiLatihan ?? '-',
-                                    style: const TextStyle(fontSize: 12, color: AppColors.neutral400),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  if (a.waktuCheckin != null) ...[
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Checkin: ${_formatTime(a.waktuCheckin!)}',
-                                      style: const TextStyle(fontSize: 11, color: AppColors.neutral400),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            StatusBadge.fromStatus(a.status),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                  childCount: _history.length,
+          else ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: [
+                      _buildFilterChip('Semua Latihan', 'Semua', Icons.grid_view_rounded),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Latihan UKM', 'UKM', Icons.school_rounded),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Latihan Acara', 'Acara', Icons.event_rounded),
+                    ],
+                  ),
                 ),
               ),
             ),
+            if (filteredHistory.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: EmptyState(
+                      emoji: '📋',
+                      title: 'Tidak ada riwayat',
+                      subtitle: 'Tidak ada riwayat absensi yang cocok dengan filter ini',
+                    ),
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (_, i) {
+                      final a = filteredHistory[i];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: AppCard(
+                          padding: const EdgeInsets.all(14),
+                          child: Row(
+                            children: [
+                              // Status indicator
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: AppColors.attendanceStatusColor(a.status).withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  _statusIcon(a.status),
+                                  color: AppColors.attendanceStatusColor(a.status),
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      formatDate(a.tanggalLatihan, withDay: false),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.neutral800,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      a.lokasiLatihan ?? '-',
+                                      style: const TextStyle(fontSize: 12, color: AppColors.neutral400),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (a.waktuCheckin != null) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Checkin: ${_formatTime(a.waktuCheckin!)}',
+                                        style: const TextStyle(fontSize: 11, color: AppColors.neutral400),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              StatusBadge.fromStatus(a.status),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: filteredHistory.length,
+                  ),
+                ),
+              ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value, IconData icon) {
+    final isSelected = _selectedFilter == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedFilter = value;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary100 : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primary400 : AppColors.neutral200,
+            width: 1.5,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary400.withOpacity(0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? AppColors.primary700 : AppColors.neutral500,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                color: isSelected ? AppColors.primary800 : AppColors.neutral700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -201,21 +298,21 @@ class _AbsensiHistoryScreenState extends State<AbsensiHistoryScreen> {
         Text(
           value,
           style: const TextStyle(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.w900,
             color: Colors.white,
           ),
         ),
         const SizedBox(height: 4),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             label,
-            style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
           ),
         ),
       ],

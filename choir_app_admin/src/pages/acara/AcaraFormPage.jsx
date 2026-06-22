@@ -106,7 +106,7 @@ export default function AcaraFormPage() {
               value={form.nama_acara} 
               onChange={set('nama_acara')} 
               error={errors.nama_acara} 
-              placeholder="Konser Natal 2025" 
+              placeholder="Input Nama Acara" 
               className="col-4"
               icon="🎵"
             />
@@ -149,7 +149,7 @@ export default function AcaraFormPage() {
               value={form.lokasi} 
               onChange={set('lokasi')} 
               error={errors.lokasi} 
-              placeholder="Aula Universitas Petra" 
+              placeholder="Input Lokasi" 
               className={form.jenis_kegiatan === 'Lainnya' ? "col-2" : "col-3"}
               icon="📍"
             />
@@ -162,7 +162,7 @@ export default function AcaraFormPage() {
               value={form.penyelenggara} 
               onChange={set('penyelenggara')} 
               error={errors.penyelenggara} 
-              placeholder="UKM Paduan Suara PCU" 
+              placeholder="Input Penyelenggara" 
               className="col-3"
               icon="🏢"
             />
@@ -172,7 +172,7 @@ export default function AcaraFormPage() {
               value={form.penanggung_jawab} 
               onChange={set('penanggung_jawab')} 
               error={errors.penanggung_jawab} 
-              placeholder="Dr. Maria Susanti" 
+              placeholder="Input Penanggung Jawab" 
               className="col-3"
               icon="👤"
             />

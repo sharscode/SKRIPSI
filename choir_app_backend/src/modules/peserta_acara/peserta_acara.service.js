@@ -89,16 +89,38 @@ async function updateApproval(id, { approval_status, alasan_reject }, adminId) {
     .input('approved_by', sql.Int, adminId)
     .query(query);
 
-  // Get participant details to sync absensi
+  // Get participant details to sync absensi and send notification
   const participantResult = await pool.request().input('id', sql.Int, id)
     .query("SELECT anggota_id, acara_id FROM peserta_acara WHERE id = @id");
   const participant = participantResult.recordset[0];
   if (participant) {
     const { anggota_id, acara_id } = participant;
+    
+    // Fetch event details to get event name
+    const acaraResult = await pool.request().input('acara_id', sql.Int, acara_id)
+      .query("SELECT nama_acara FROM acara WHERE id = @acara_id");
+    const namaAcara = acaraResult.recordset[0]?.nama_acara || 'Acara';
+    
+    // Send approval notification
+    try {
+      const notificationService = require('../notification/notification.service');
+      const statusText = approval_status === 'disetujui' ? 'disetujui' : 'ditolak';
+      const reasonText = (approval_status === 'ditolak' && alasan_reject) ? `. Alasan: ${alasan_reject}` : '';
+      await notificationService.send({
+        judul: `Pendaftaran Acara ${approval_status === 'disetujui' ? 'Disetujui' : 'Ditolak'}`,
+        pesan: `Pendaftaran Anda untuk acara "${namaAcara}" telah ${statusText}${reasonText}.`,
+        tipe: 'approval',
+        anggota_id: anggota_id,
+        acara_id: acara_id
+      });
+    } catch (err) {
+      console.error('Failed to send approval notification:', err);
+    }
+
     const latihanResult = await pool.request().input('acara_id', sql.Int, acara_id)
       .query("SELECT id FROM latihan WHERE acara_id = @acara_id AND tipe_latihan = 'sekali'");
     const latihanIds = latihanResult.recordset.map(r => r.id);
-
+ 
     if (latihanIds.length > 0) {
       if (approval_status === 'disetujui') {
         for (const latId of latihanIds) {

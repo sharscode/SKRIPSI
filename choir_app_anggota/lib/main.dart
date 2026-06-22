@@ -20,9 +20,13 @@ import 'screens/partitur/partitur_view_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/profile/edit_profile_screen.dart';
 import 'screens/notification/notification_screen.dart';
+import 'utils/notification_helper.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationHelper.init();
+  await initializeDateFormatting('id', null);
 
   // Lock to portrait
   await SystemChrome.setPreferredOrientations([

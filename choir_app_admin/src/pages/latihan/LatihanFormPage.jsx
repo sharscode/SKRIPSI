@@ -112,7 +112,7 @@ export default function LatihanFormPage() {
               value={form.lokasi} 
               onChange={set('lokasi')} 
               error={errors.lokasi} 
-              placeholder="Ruang Musik Lt. 3" 
+              placeholder="EH.405" 
               className="col-6"
               icon="📍"
             />

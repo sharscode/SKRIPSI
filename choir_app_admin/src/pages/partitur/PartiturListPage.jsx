@@ -25,6 +25,7 @@ export default function PartiturListPage() {
   const [eventsList, setEventsList] = useState([]);
   const [selectedAcara, setSelectedAcara] = useState('');
   const [linking, setLinking] = useState(false);
+  const [genres, setGenres]   = useState(['Hymn', 'Klasik', 'Oratorio', 'Pop', 'Rohani', 'Nasional']);
   const toast = useToast();
   const navigate = useNavigate();
   const searchTimer = useRef(null);
@@ -37,7 +38,27 @@ export default function PartiturListPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchData(); }, [jenis]);
+  useEffect(() => {
+    fetchData();
+  }, [jenis]);
+
+  useEffect(() => {
+    // Fetch all partiturs once to gather unique custom genres
+    api.get('/partitur')
+      .then((res) => {
+        const defaultGenres = ['Hymn', 'Klasik', 'Oratorio', 'Pop', 'Rohani', 'Nasional'];
+        const unique = new Set(defaultGenres);
+        if (res.data && res.data.data) {
+          res.data.data.forEach((p) => {
+            if (p.jenis_lagu && !unique.has(p.jenis_lagu)) {
+              unique.add(p.jenis_lagu);
+            }
+          });
+        }
+        setGenres(Array.from(unique));
+      })
+      .catch((err) => console.error('Failed to load unique genres', err));
+  }, []);
 
   const handleSearch = (v) => {
     setSearch(v);
@@ -85,7 +106,7 @@ export default function PartiturListPage() {
     }
   };
 
-  const jenisOptions = ['Hymn', 'Klasik', 'Oratorio', 'Pop', 'Rohani', 'Nasional', 'Lainnya'];
+
 
   const columns = [
     { key: 'judul', label: 'Judul', render: (v) => <strong style={{ color: 'var(--c-neutral-800)' }}>{v}</strong> },
@@ -130,8 +151,8 @@ export default function PartiturListPage() {
       <div className="page-filters">
         <Input id="search-partitur" placeholder="Cari judul atau komposer..." value={search}
           onChange={(e) => handleSearch(e.target.value)} className="filter-search" />
-        <Select id="filter-jenis" placeholder="Semua Jenis"
-          options={jenisOptions.map((j) => ({ value: j, label: j }))}
+        <Select id="filter-jenis" placeholder="Semua"
+          options={genres.map((j) => ({ value: j, label: j }))}
           value={jenis} onChange={(e) => setJenis(e.target.value)} className="filter-select" />
       </div>
 
