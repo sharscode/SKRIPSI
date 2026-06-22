@@ -172,16 +172,52 @@ class EmptyState extends StatelessWidget {
   final String emoji;
   final String title;
   final String subtitle;
+  final bool isMini;
 
   const EmptyState({
     super.key,
     required this.emoji,
     required this.title,
     required this.subtitle,
+    this.isMini = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (isMini) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 40)),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutral700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.neutral400,
+                  height: 1.3,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Center(
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),

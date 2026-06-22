@@ -375,6 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
           emoji: '🎵',
           title: 'Belum ada jadwal',
           subtitle: 'Jadwal latihan mendatang akan muncul di sini',
+          isMini: true,
         ),
       );
     }
@@ -474,6 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
           emoji: '🎭',
           title: 'Belum ada acara',
           subtitle: 'Acara mendatang yang Anda ikuti akan muncul di sini',
+          isMini: true,
         ),
       );
     }
@@ -491,6 +493,7 @@ class _HomeScreenState extends State<HomeScreen> {
           emoji: '🎭',
           title: 'Belum ada acara aktif',
           subtitle: 'Acara aktif mendatang akan muncul di sini',
+          isMini: true,
         ),
       );
     }
