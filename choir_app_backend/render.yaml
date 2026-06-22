@@ -24,7 +24,7 @@ services:
       - key: DB_ENCRYPT
         value: true
       - key: DB_TRUST_SERVER_CERTIFICATE
-        value: false
+        value: true
       - key: JWT_SECRET
         sync: false   # Set this in Render dashboard
       - key: JWT_REFRESH_SECRET
