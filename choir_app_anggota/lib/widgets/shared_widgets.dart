@@ -191,8 +191,6 @@ class EmptyState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 40)),
-              const SizedBox(height: 8),
               Text(
                 title,
                 style: const TextStyle(
