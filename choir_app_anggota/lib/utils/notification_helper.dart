@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
 import '../models/latihan_model.dart';
 
 class NotificationHelper {
@@ -13,6 +14,8 @@ class NotificationHelper {
     try {
       // Initialize timezone database
       tz.initializeTimeZones();
+      final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
 
       const AndroidInitializationSettings initializationSettingsAndroid =
           AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -100,22 +103,22 @@ class NotificationHelper {
             id: reminderId,
             title: title,
             body: body,
-            scheduledDate: tz.TZDateTime.from(scheduledTime.toUtc(), tz.getLocation('UTC')),
+            scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
             notificationDetails: platformChannelSpecifics,
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           );
-          debugPrint('Scheduled exact reminder for Latihan $id at $scheduledTime (UTC: ${scheduledTime.toUtc()})');
+          debugPrint('Scheduled exact reminder for Latihan $id at $scheduledTime (Local Time)');
         } catch (scheduleErr) {
           debugPrint('Exact scheduling failed, falling back to inexact schedule: $scheduleErr');
           await _notificationsPlugin.zonedSchedule(
             id: reminderId,
             title: title,
             body: body,
-            scheduledDate: tz.TZDateTime.from(scheduledTime.toUtc(), tz.getLocation('UTC')),
+            scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
             notificationDetails: platformChannelSpecifics,
             androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           );
-          debugPrint('Scheduled inexact reminder for Latihan $id at $scheduledTime (UTC: ${scheduledTime.toUtc()})');
+          debugPrint('Scheduled inexact reminder for Latihan $id at $scheduledTime (Local Time)');
         }
       }
     } catch (e) {
