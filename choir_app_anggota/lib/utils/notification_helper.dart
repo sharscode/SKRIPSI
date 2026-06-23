@@ -80,8 +80,8 @@ class NotificationHelper {
     try {
       const AndroidNotificationDetails androidPlatformChannelSpecifics =
           AndroidNotificationDetails(
-        'pcu_choir_reminder_channel_id',
-        'PCU Choir Reminders',
+        'pcu_choir_channel_id',
+        'PCU Choir Notifications',
         channelDescription: 'Scheduled reminders for PCU Choir practices',
         importance: Importance.max,
         priority: Priority.high,
