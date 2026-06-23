@@ -13,9 +13,27 @@ class NotificationHelper {
     if (kIsWeb) return;
     try {
       // Initialize timezone database
-      tz.initializeTimeZones();
-      final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
-      tz.setLocalLocation(tz.getLocation(timeZoneName));
+      try {
+        tz.initializeTimeZones();
+        String? timeZoneName;
+        try {
+          timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
+          tz.setLocalLocation(tz.getLocation(timeZoneName));
+          debugPrint('Notification timezone set to: $timeZoneName');
+        } catch (locationErr) {
+          debugPrint('Location $timeZoneName not found in timezone database: $locationErr. Trying Asia/Jakarta.');
+          try {
+            tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+            debugPrint('Notification timezone set to fallback: Asia/Jakarta');
+          } catch (_) {
+            debugPrint('Asia/Jakarta fallback failed. Defaulting to UTC.');
+            tz.setLocalLocation(tz.UTC);
+          }
+        }
+      } catch (tzInitErr) {
+        debugPrint('Timezone initialization failed: $tzInitErr. Using UTC.');
+        tz.setLocalLocation(tz.UTC);
+      }
 
       const AndroidInitializationSettings initializationSettingsAndroid =
           AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -27,6 +45,7 @@ class NotificationHelper {
       await _notificationsPlugin.initialize(
         settings: initializationSettings,
       );
+      debugPrint('Local notifications plugin initialized successfully.');
 
       // Request permissions for Android 13+
       await _notificationsPlugin
@@ -98,28 +117,39 @@ class NotificationHelper {
 
       final now = DateTime.now();
       if (scheduledTime.isAfter(now)) {
+        final duration = scheduledTime.difference(now);
+        final tz.TZDateTime scheduledDate = tz.TZDateTime.now(tz.local).add(duration);
+
+        debugPrint('[Schedule Notification] Latihan $id details:');
+        debugPrint('  - Duration until trigger: ${duration.inSeconds} seconds (${duration.inMinutes} minutes)');
+        debugPrint('  - scheduledDate (tz.local): $scheduledDate');
+        debugPrint('  - scheduledDate.toUtc(): ${scheduledDate.toUtc()}');
+        debugPrint('  - tz.local: ${tz.local.name}');
+
         try {
           await _notificationsPlugin.zonedSchedule(
             id: reminderId,
             title: title,
             body: body,
-            scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
+            scheduledDate: scheduledDate,
             notificationDetails: platformChannelSpecifics,
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           );
-          debugPrint('Scheduled exact reminder for Latihan $id at $scheduledTime (Local Time)');
+          debugPrint('  - Scheduled EXACT reminder for Latihan $id successfully.');
         } catch (scheduleErr) {
-          debugPrint('Exact scheduling failed, falling back to inexact schedule: $scheduleErr');
+          debugPrint('  - Exact scheduling failed: $scheduleErr. Falling back to inexact.');
           await _notificationsPlugin.zonedSchedule(
             id: reminderId,
             title: title,
             body: body,
-            scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
+            scheduledDate: scheduledDate,
             notificationDetails: platformChannelSpecifics,
             androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           );
-          debugPrint('Scheduled inexact reminder for Latihan $id at $scheduledTime (Local Time)');
+          debugPrint('  - Scheduled INEXACT reminder for Latihan $id successfully.');
         }
+      } else {
+        debugPrint('[Schedule Notification] Scheduled time is in the past. Skipping schedule for Latihan $id.');
       }
     } catch (e) {
       debugPrint('Error scheduling local notification: $e');
@@ -130,6 +160,7 @@ class NotificationHelper {
     if (kIsWeb) return;
     try {
       await _notificationsPlugin.cancel(id: 1000000 + id);
+      debugPrint('Cancelled scheduled reminder for Latihan $id (reminderId: ${1000000 + id})');
     } catch (e) {
       debugPrint('Error cancelling notification: $e');
     }
@@ -137,10 +168,15 @@ class NotificationHelper {
 
   static Future<void> syncLatihanReminders(List<LatihanModel> latihans) async {
     if (kIsWeb) return;
+    debugPrint('[Sync Reminders] Initiating sync for ${latihans.length} rehearsals.');
+    final now = DateTime.now();
     for (final l in latihans) {
       try {
         final cleanJam = l.jam.replaceAll('.', ':').replaceAll(RegExp(r'[^0-9:]'), '');
-        if (cleanJam.isEmpty || l.tanggal.isEmpty) continue;
+        if (cleanJam.isEmpty || l.tanggal.isEmpty) {
+          debugPrint('  - Latihan ${l.id} has empty jam or tanggal. Skipping.');
+          continue;
+        }
 
         // Ensure cleanJam is in HH:mm:ss format
         var timePart = cleanJam;
@@ -153,10 +189,18 @@ class NotificationHelper {
           timePart = '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
         }
 
-        final practiceTime = DateTime.parse('${l.tanggal}T$timePart+07:00');
+        final parsedStr = '${l.tanggal}T$timePart+07:00';
+        final practiceTime = DateTime.parse(parsedStr);
         final scheduledTime = practiceTime.subtract(Duration(minutes: l.waktuNotifikasi));
 
-        if (scheduledTime.isAfter(DateTime.now())) {
+        debugPrint('[Sync Reminders] Latihan ${l.id}:');
+        debugPrint('  - Tanggal/Jam: ${l.tanggal} / ${l.jam}');
+        debugPrint('  - Waktu Notifikasi Offset: ${l.waktuNotifikasi} minutes');
+        debugPrint('  - Parsed Practice Time: $practiceTime');
+        debugPrint('  - Scheduled Notification Time: $scheduledTime');
+        debugPrint('  - Current Device Time (Local): $now');
+
+        if (scheduledTime.isAfter(now)) {
           final String title = 'Pengingat Latihan';
           final String body = '${l.tipeDisplay} hari ini pukul ${l.jam} WIB di ${l.lokasi}.';
           await scheduleLatihanNotification(
@@ -166,12 +210,13 @@ class NotificationHelper {
             scheduledTime: scheduledTime,
           );
         } else {
-          // If the scheduled time is already in the past, make sure it is cancelled
+          debugPrint('  - Scheduled time is in the past. Ensuring cancelled.');
           await cancelLatihanNotification(l.id);
         }
       } catch (e) {
         debugPrint('Error syncing reminder for Latihan ${l.id}: $e');
       }
     }
+    debugPrint('[Sync Reminders] Completed sync.');
   }
 }
