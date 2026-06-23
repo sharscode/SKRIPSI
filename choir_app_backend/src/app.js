@@ -8,6 +8,21 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const fs = require('fs');
+
+// Ensure upload directories exist (Render does not track empty folders)
+const uploadDirs = [
+  path.join(__dirname, '..', 'uploads'),
+  path.join(__dirname, '..', 'uploads', 'partitur'),
+  path.join(__dirname, '..', 'uploads', 'dokumentasi'),
+  path.join(__dirname, '..', 'uploads', 'photos'),
+];
+uploadDirs.forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    console.log(`📁 Created directory: ${dir}`);
+  }
+});
 
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
