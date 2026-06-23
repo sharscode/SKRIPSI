@@ -48,10 +48,19 @@ class NotificationHelper {
       debugPrint('Local notifications plugin initialized successfully.');
 
       // Request permissions for Android 13+
-      await _notificationsPlugin
+      final androidImplementation = _notificationsPlugin
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestNotificationsPermission();
+              AndroidFlutterLocalNotificationsPlugin>();
+
+      await androidImplementation?.requestNotificationsPermission();
+
+      // Request exact alarm permission for Android 13/14+
+      try {
+        final exactGranted = await androidImplementation?.requestExactAlarmsPermission();
+        debugPrint('Exact alarms permission request result: $exactGranted');
+      } catch (exactErr) {
+        debugPrint('Error requesting exact alarms permission: $exactErr');
+      }
     } catch (e) {
       debugPrint('Error initializing local notifications: $e');
     }
