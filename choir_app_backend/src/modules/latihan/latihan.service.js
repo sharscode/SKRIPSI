@@ -141,11 +141,11 @@ async function create(data, adminId) {
   const newLatihanId = result.recordset[0].id;
   await syncAbsensiList(newLatihanId, data.tipe_latihan, data.acara_id);
 
-  try {
-    await sendLatihanNotifications(newLatihanId);
-  } catch (err) {
-    console.error('Failed to send practice notifications:', err);
-  }
+  // try {
+  //   await sendLatihanNotifications(newLatihanId);
+  // } catch (err) {
+  //   console.error('Failed to send practice notifications:', err);
+  // }
   
   return getById(newLatihanId);
 }
@@ -163,11 +163,11 @@ async function update(id, data) {
   
   await syncAbsensiList(id, data.tipe_latihan, data.acara_id);
 
-  try {
-    await sendLatihanNotifications(id);
-  } catch (err) {
-    console.error('Failed to send practice update notifications:', err);
-  }
+  // try {
+  //   await sendLatihanNotifications(id);
+  // } catch (err) {
+  //   console.error('Failed to send practice update notifications:', err);
+  // }
   
   return getById(id);
 }
