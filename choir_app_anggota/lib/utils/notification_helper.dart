@@ -150,7 +150,7 @@ class NotificationHelper {
           timePart = '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
         }
 
-        final practiceTime = DateTime.parse('${l.tanggal} $timePart');
+        final practiceTime = DateTime.parse('${l.tanggal}T$timePart+07:00');
         final scheduledTime = practiceTime.subtract(Duration(minutes: l.waktuNotifikasi));
 
         if (scheduledTime.isAfter(DateTime.now())) {
