@@ -219,8 +219,7 @@ class NotificationHelper {
             scheduledTime: scheduledTime,
           );
         } else {
-          debugPrint('  - Scheduled time is in the past. Ensuring cancelled.');
-          await cancelLatihanNotification(l.id);
+          debugPrint('  - Scheduled time is in the past. Doing nothing so active notification in drawer is not cleared.');
         }
       } catch (e) {
         debugPrint('Error syncing reminder for Latihan ${l.id}: $e');

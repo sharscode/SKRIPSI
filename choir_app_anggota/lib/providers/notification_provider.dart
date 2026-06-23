@@ -47,6 +47,11 @@ class NotificationProvider with ChangeNotifier {
             if (newUnread.isNotEmpty) {
               // Trigger local notifications in chronological order (oldest first)
               for (final n in newUnread.reversed) {
+                // Skip immediate popup for rehearsal reminders to let the scheduled local reminder handle it
+                if (n.tipe == 'reminder_latihan') {
+                  debugPrint('Skipping immediate notification popup for ${n.tipe} (ID: ${n.id}).');
+                  continue;
+                }
                 await NotificationHelper.showNotification(
                   id: n.id,
                   title: n.judul,
