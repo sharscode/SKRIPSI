@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'dart:convert' show jsonDecode;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -75,8 +76,18 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     final user = context.read<AuthProvider>().user;
     if (user == null) return;
 
+    String qrToken = code;
+    try {
+      final decoded = jsonDecode(code);
+      if (decoded is Map && decoded.containsKey('token')) {
+        qrToken = decoded['token'].toString();
+      }
+    } catch (_) {
+      // Fallback to raw code
+    }
+
     final result = await ApiService().post('/absensi/scan', {
-      'qr_token': code,
+      'qr_token': qrToken,
       'anggota_id': user.id,
     });
 

@@ -49,7 +49,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final today = DateTime(now.year, now.month, now.day);
 
     final myActiveRegIds = myRegs
-        .where((r) => r.approvalStatus == 'disetujui')
+        .where((r) =>
+            r.statusPeserta == 'ikut' &&
+            (r.approvalStatus == 'disetujui' ||
+                r.approvalStatus == 'approved'))
         .map((r) => r.acaraId)
         .toSet();
 

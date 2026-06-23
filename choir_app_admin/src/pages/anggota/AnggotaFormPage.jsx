@@ -89,6 +89,7 @@ export default function AnggotaFormPage() {
                 placeholder="Input NRP"
                 className="col-2"
                 icon="🆔"
+                required={!isEdit}
               />
               <Input 
                 id="nama_lengkap" 
@@ -99,6 +100,7 @@ export default function AnggotaFormPage() {
                 placeholder="Input Nama Lengkap"
                 className="col-4"
                 icon="👤"
+                required
               />
               <Select 
                 id="bagian_suara" 
@@ -110,6 +112,7 @@ export default function AnggotaFormPage() {
                 options={BAGIAN_SUARA.map(s => ({ value: s, label: s.charAt(0).toUpperCase()+s.slice(1) }))} 
                 className="col-2"
                 icon="🎵"
+                required
               />
               <Input 
                 id="jurusan" 
@@ -146,6 +149,7 @@ export default function AnggotaFormPage() {
                 placeholder="Input Email"
                 className="col-3"
                 icon="✉️"
+                required
               />
               <Input 
                 id="kontak" 
@@ -156,6 +160,7 @@ export default function AnggotaFormPage() {
                 placeholder="Input No. Telepon"
                 className="col-3"
                 icon="📞"
+                required
               />
               <Input 
                 id="alamat" 
@@ -182,6 +187,7 @@ export default function AnggotaFormPage() {
                   placeholder="Min. 6 karakter" 
                   className="col-3"
                   icon="🔒"
+                  required={!isEdit}
                 />
               </div>
             )}

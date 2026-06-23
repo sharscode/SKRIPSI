@@ -109,6 +109,7 @@ export default function AcaraFormPage() {
               placeholder="Input Nama Acara" 
               className="col-4"
               icon="🎵"
+              required
             />
             <Input 
               id="tanggal_acara" 
@@ -119,6 +120,7 @@ export default function AcaraFormPage() {
               error={errors.tanggal} 
               className="col-2"
               icon="📅"
+              required
             />
             <Select 
               id="jenis_kegiatan" 
@@ -130,6 +132,7 @@ export default function AcaraFormPage() {
               error={errors.jenis_kegiatan} 
               className={form.jenis_kegiatan === 'Lainnya' ? "col-2" : "col-3"}
               icon="🎭"
+              required
             />
             {form.jenis_kegiatan === 'Lainnya' && (
               <Input 
@@ -141,6 +144,7 @@ export default function AcaraFormPage() {
                 placeholder="Ketik jenis..."
                 className="col-2"
                 icon="✍️"
+                required
               />
             )}
             <Input 
@@ -152,6 +156,7 @@ export default function AcaraFormPage() {
               placeholder="Input Lokasi" 
               className={form.jenis_kegiatan === 'Lainnya' ? "col-2" : "col-3"}
               icon="📍"
+              required
             />
 
             <div className="form-section-divider">Penyelenggara & Akademik</div>
@@ -165,6 +170,7 @@ export default function AcaraFormPage() {
               placeholder="Input Penyelenggara" 
               className="col-3"
               icon="🏢"
+              required
             />
             <Input 
               id="penanggung_jawab" 
@@ -175,6 +181,7 @@ export default function AcaraFormPage() {
               placeholder="Input Penanggung Jawab" 
               className="col-3"
               icon="👤"
+              required
             />
             <Select 
               id="jenis_skkk" 
@@ -186,6 +193,7 @@ export default function AcaraFormPage() {
               error={errors.jenis_skkk} 
               className="col-6"
               icon="🎓"
+              required
             />
 
             <div className="form-actions-row">

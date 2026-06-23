@@ -7,6 +7,7 @@ class LatihanModel {
   final String tipeLatihan;
   final int? acaraId;
   final String? namaAcara;
+  final int waktuNotifikasi;
 
   const LatihanModel({
     required this.id,
@@ -17,6 +18,7 @@ class LatihanModel {
     required this.tipeLatihan,
     this.acaraId,
     this.namaAcara,
+    required this.waktuNotifikasi,
   });
 
   factory LatihanModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class LatihanModel {
       tipeLatihan: json['tipe_latihan']?.toString() ?? 'rutin',
       acaraId: json['acara_id'] as int?,
       namaAcara: json['nama_acara']?.toString(),
+      waktuNotifikasi: json['waktu_notifikasi'] as int? ?? 60,
     );
   }
 
@@ -41,6 +44,7 @@ class LatihanModel {
         'tipe_latihan': tipeLatihan,
         'acara_id': acaraId,
         'nama_acara': namaAcara,
+        'waktu_notifikasi': waktuNotifikasi,
       };
 
   DateTime? get tanggalAsDate {

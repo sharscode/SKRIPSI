@@ -11,6 +11,8 @@ import '../../providers/acara_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/shared_widgets.dart';
 import '../../utils/helpers.dart';
+import 'package:http/http.dart' as http;
+import 'package:gal/gal.dart';
 
 class AcaraDetailScreen extends StatefulWidget {
   final AcaraModel acara;
@@ -168,6 +170,11 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
   Widget build(BuildContext context) {
     final acara = widget.acara;
     final isApproved = _myStatus == 'disetujui';
+    final filteredPeserta = _peserta.where((p) {
+      return p['status_peserta']?.toString() == 'ikut' &&
+          (p['approval_status']?.toString() == 'disetujui' ||
+              p['approval_status']?.toString() == 'approved');
+    }).toList();
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
@@ -297,7 +304,7 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
                   tabs: [
                     Tab(text: 'Latihan (${_latihan.length})'),
                     Tab(text: 'Partitur (${_partiturList.length})'),
-                    Tab(text: 'Peserta (${_peserta.length})'),
+                    Tab(text: 'Peserta (${filteredPeserta.length})'),
                   ],
                 ),
               ),
@@ -310,7 +317,7 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
                       children: [
                         _buildLatihanTab(),
                         _buildPartiturTab(),
-                        _buildPesertaTab(),
+                        _buildPesertaTab(filteredPeserta),
                       ],
                     ),
             ),
@@ -427,19 +434,19 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
     );
   }
 
-  Widget _buildPesertaTab() {
-    if (_peserta.isEmpty) {
+  Widget _buildPesertaTab(List<Map<String, dynamic>> filteredPeserta) {
+    if (filteredPeserta.isEmpty) {
       return const EmptyState(
         emoji: '👥',
         title: 'Belum ada peserta',
-        subtitle: 'Daftar peserta yang telah mendaftar akan muncul di sini',
+        subtitle: 'Daftar peserta yang telah disetujui akan muncul di sini',
       );
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: _peserta.length,
+      itemCount: filteredPeserta.length,
       itemBuilder: (_, i) {
-        final p = _peserta[i];
+        final p = filteredPeserta[i];
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: AppCard(
@@ -702,53 +709,136 @@ class _DokumentasiSheetState extends State<_DokumentasiSheet> {
       context: context,
       barrierDismissible: true,
       builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: InteractiveViewer(
-                  maxScale: 3.0,
-                  child: Image.network(
-                    imgUrl,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Container(
-                      padding: const EdgeInsets.all(24),
-                      color: Colors.black54,
-                      child: const Icon(Icons.broken_image, size: 64, color: Colors.white),
+        bool isSaving = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: InteractiveViewer(
+                      maxScale: 3.0,
+                      child: Image.network(
+                        imgUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => Container(
+                          padding: const EdgeInsets.all(24),
+                          color: Colors.black54,
+                          child: const Icon(Icons.broken_image, size: 64, color: Colors.white),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              if (caption.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    caption,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                  if (caption.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        caption,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
+                  ],
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                setDialogState(() {
+                                  isSaving = true;
+                                });
+                                try {
+                                  final response = await http.get(Uri.parse(imgUrl));
+                                  if (response.statusCode == 200) {
+                                    final hasAccess = await Gal.hasAccess();
+                                    if (!hasAccess) {
+                                      await Gal.requestAccess();
+                                    }
+                                    await Gal.putImageBytes(response.bodyBytes);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Foto berhasil disimpan ke galeri!'),
+                                          backgroundColor: AppColors.success,
+                                        ),
+                                      );
+                                    }
+                                  } else {
+                                    throw Exception('Status code: ${response.statusCode}');
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Gagal menyimpan foto: $e'),
+                                        backgroundColor: AppColors.danger,
+                                      ),
+                                    );
+                                  }
+                                } finally {
+                                  if (context.mounted) {
+                                    setDialogState(() {
+                                      isSaving = false;
+                                    });
+                                  }
+                                }
+                              },
+                        icon: isSaving
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.download_rounded, size: 18),
+                        label: Text(isSaving ? 'Menyimpan...' : 'Simpan ke Galeri'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary500,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                        label: const Text('Tutup'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white54),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              IconButton(
-                icon: const Icon(Icons.cancel, color: Colors.white, size: 36),
-                onPressed: () => Navigator.pop(context),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

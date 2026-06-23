@@ -119,7 +119,13 @@ class _AcaraTabView extends StatelessWidget {
       );
     }
 
-    final myRegIds = myRegs.map((r) => r.acaraId).toSet();
+    final myRegIds = myRegs
+        .where((r) =>
+            r.statusPeserta == 'ikut' &&
+            (r.approvalStatus == 'disetujui' ||
+                r.approvalStatus == 'approved'))
+        .map((r) => r.acaraId)
+        .toSet();
 
     final list = provider.acaraList.where((a) {
       if (a.status != filter) return false;

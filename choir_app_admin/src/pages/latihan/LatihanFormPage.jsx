@@ -95,6 +95,7 @@ export default function LatihanFormPage() {
               error={errors.tanggal} 
               className="col-3"
               icon="📅"
+              required
             />
             <Input 
               id="jam_latihan" 
@@ -105,6 +106,7 @@ export default function LatihanFormPage() {
               error={errors.jam} 
               className="col-3"
               icon="🕒"
+              required
             />
             <Input 
               id="lokasi_latihan" 
@@ -115,6 +117,7 @@ export default function LatihanFormPage() {
               placeholder="EH.405" 
               className="col-6"
               icon="📍"
+              required
             />
 
             <div className="form-section-divider">Pengaturan Kegiatan</div>
@@ -128,6 +131,7 @@ export default function LatihanFormPage() {
               options={[{ value: 'rutin', label: 'Rutin (UKM)' }, { value: 'sekali', label: 'Sekali (persiapan acara)' }]} 
               className="col-3"
               icon="⚙️"
+              required
             />
             {form.tipe_latihan === 'sekali' && (
               <Select 
@@ -140,6 +144,7 @@ export default function LatihanFormPage() {
                 error={errors.acara_id} 
                 className="col-3"
                 icon="📅"
+                required
               />
             )}
             <Input 

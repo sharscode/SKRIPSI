@@ -316,9 +316,8 @@ export default function AcaraDetailPage() {
   const pendingPeserta = peserta.filter((p) => p.approval_status === 'menunggu');
 
   const displayedPeserta = peserta.filter((p) => {
-    if (p.approval_status === 'disetujui') return true;
     if (showRejected && p.approval_status === 'ditolak') return true;
-    return false;
+    return p.status_peserta === 'ikut' && p.approval_status === 'disetujui';
   });
 
   const filteredPeserta = displayedPeserta.filter((p) =>
@@ -419,7 +418,7 @@ export default function AcaraDetailPage() {
 
       {/* Tabs: Peserta, Latihan, Partitur, Dokumentasi */}
       <Tabs tabs={[
-        { label: 'Peserta', badge: peserta.length },
+        { label: 'Peserta', badge: peserta.filter((p) => p.status_peserta === 'ikut' && p.approval_status === 'disetujui').length },
         { label: 'Latihan', badge: latihan.length },
         { label: 'Partitur', badge: partitur.length },
         { label: 'Dokumentasi', badge: dokumentasi.length },

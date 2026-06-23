@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/latihan_model.dart';
 import '../services/api_service.dart';
+import '../utils/notification_helper.dart';
 
 class LatihanProvider with ChangeNotifier {
   final _api = ApiService();
@@ -59,6 +60,9 @@ class LatihanProvider with ChangeNotifier {
         final list = (result['data'] as List<dynamic>? ?? []);
         _latihanList = list.map((e) => LatihanModel.fromJson(e as Map<String, dynamic>)).toList();
         _upcomingLatihan = _filterAndSortUpcoming(_latihanList);
+        
+        // Sync scheduled offline reminders
+        NotificationHelper.syncLatihanReminders(_latihanList);
       }
     } catch (_) {
       _error = 'Gagal memuat jadwal latihan.';
@@ -75,6 +79,9 @@ class LatihanProvider with ChangeNotifier {
         final list = (result['data'] as List<dynamic>? ?? []);
         final all = list.map((e) => LatihanModel.fromJson(e as Map<String, dynamic>)).toList();
         _upcomingLatihan = _filterAndSortUpcoming(all);
+        
+        // Sync scheduled offline reminders
+        NotificationHelper.syncLatihanReminders(all);
         notifyListeners();
       }
     } catch (_) {}

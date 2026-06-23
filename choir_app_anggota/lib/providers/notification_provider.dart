@@ -85,15 +85,19 @@ class NotificationProvider with ChangeNotifier {
 
   Future<void> markAllRead() async {
     try {
-      await _api.patch('/notification/mark-all-read', {});
-      for (var n in _notifications) {
-        n = NotificationModel(
-          id: n.id, judul: n.judul, pesan: n.pesan,
-          tipe: n.tipe, isRead: true, createdAt: n.createdAt,
-          acaraId: n.acaraId, latihanId: n.latihanId,
-        );
-      }
+      await _api.patch('/notification/read-all', {});
+      _notifications = _notifications.map((n) => NotificationModel(
+        id: n.id,
+        judul: n.judul,
+        pesan: n.pesan,
+        tipe: n.tipe,
+        isRead: true,
+        createdAt: n.createdAt,
+        acaraId: n.acaraId,
+        latihanId: n.latihanId,
+      )).toList();
       _unreadCount = 0;
+      notifyListeners();
       await fetchNotifications();
     } catch (_) {}
   }
