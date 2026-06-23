@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/latihan_model.dart';
 import '../services/api_service.dart';
@@ -10,6 +11,7 @@ class LatihanProvider with ChangeNotifier {
   List<LatihanModel> _upcomingLatihan = [];
   bool _isLoading = false;
   String? _error;
+  Timer? _pollingTimer;
 
   List<LatihanModel> get latihanList => _latihanList;
   List<LatihanModel> get upcomingLatihan => _upcomingLatihan;
@@ -85,5 +87,24 @@ class LatihanProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (_) {}
+  }
+
+  void startPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      debugPrint('[LatihanProvider] Polling rehearsals to sync local notifications...');
+      fetchAll();
+    });
+  }
+
+  void stopPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+  }
+
+  @override
+  void dispose() {
+    stopPolling();
+    super.dispose();
   }
 }

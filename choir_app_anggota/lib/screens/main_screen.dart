@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../config/routes.dart';
 import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
+import '../providers/latihan_provider.dart';
 import '../theme/app_colors.dart';
 import 'home/home_screen.dart';
 import 'acara/acara_list_screen.dart';
@@ -41,11 +42,15 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch notifications on start and start periodic polling
+    // Fetch notifications and rehearsals on start and start periodic polling
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<NotificationProvider>();
       provider.fetchNotifications();
       provider.startPolling();
+
+      final latihanProv = context.read<LatihanProvider>();
+      latihanProv.fetchAll();
+      latihanProv.startPolling();
     });
   }
 
@@ -53,6 +58,9 @@ class MainScreenState extends State<MainScreen> {
   void dispose() {
     // Stop polling when main screen is disposed (e.g. on logout)
     context.read<NotificationProvider>().stopPolling();
+    try {
+      context.read<LatihanProvider>().stopPolling();
+    } catch (_) {}
     super.dispose();
   }
 
