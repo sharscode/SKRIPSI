@@ -181,7 +181,7 @@ async function remove(id) {
 async function generateQR(id) {
   await getById(id);
   const token = uuidv4();
-  const expiredAt = new Date(Date.now() + 5 * 1000); // 15 seconds
+  const expiredAt = new Date(Date.now() + 5 * 3000); // 15 seconds
   const pool = await getPool();
   await pool.request().input('id', sql.Int, id).input('token', sql.VarChar, token)
     .input('expired_at', sql.DateTime, expiredAt)
