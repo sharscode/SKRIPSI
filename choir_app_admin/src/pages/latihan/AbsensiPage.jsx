@@ -22,7 +22,7 @@ export default function AbsensiPage() {
   const [qrLoading, setQrLoad]  = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [sessionTime, setSessionTime] = useState(600); // 10 minutes in seconds
-  const [rotationTime, setRotationTime] = useState(15); // 15 seconds token rotation
+  const [rotationTime, setRotationTime] = useState(5); // 5 seconds token rotation
   
   const timerRef = useRef(null);
   const pollTimerRef = useRef(null);
@@ -77,7 +77,7 @@ export default function AbsensiPage() {
 
   const startQrSession = async () => {
     setSessionTime(600);
-    setRotationTime(15);
+    setRotationTime(5);
     setShowQrModal(true);
     setQrLoad(true);
 
@@ -114,7 +114,7 @@ export default function AbsensiPage() {
       setRotationTime((prevRotation) => {
         if (prevRotation <= 1) {
           fetchNextQr();
-          return 15;
+          return 5;
         }
         return prevRotation - 1;
       });

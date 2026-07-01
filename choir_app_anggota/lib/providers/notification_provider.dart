@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/notification_model.dart';
+import '../models/latihan_model.dart';
 import '../services/api_service.dart';
 import '../utils/notification_helper.dart';
 
@@ -9,6 +10,8 @@ class NotificationProvider with ChangeNotifier {
   final _api = ApiService();
 
   List<NotificationModel> _notifications = [];
+  List<NotificationModel> _rawNotifications = [];
+  List<LatihanModel> _rehearsals = [];
   int _unreadCount = 0;
   bool _isLoading = false;
   Timer? _pollingTimer;
@@ -16,6 +19,31 @@ class NotificationProvider with ChangeNotifier {
   List<NotificationModel> get notifications => _notifications;
   int get unreadCount => _unreadCount;
   bool get isLoading => _isLoading;
+
+  void updateRehearsals(List<LatihanModel> rehearsals) {
+    _rehearsals = rehearsals;
+    _filterAndNotify();
+  }
+
+  void _filterAndNotify() {
+    final now = DateTime.now();
+    _notifications = _rawNotifications.where((n) {
+      if (n.tipe == 'reminder_latihan' && n.latihanId != null) {
+        final idx = _rehearsals.indexWhere((l) => l.id == n.latihanId);
+        if (idx != -1) {
+          final l = _rehearsals[idx];
+          final scheduledTime = l.scheduledReminderTime;
+          if (scheduledTime != null && now.isBefore(scheduledTime)) {
+            // Rehearsal reminder time has not arrived yet. Hide it!
+            return false;
+          }
+        }
+      }
+      return true;
+    }).toList();
+    _unreadCount = _notifications.where((n) => !n.isRead).length;
+    notifyListeners();
+  }
 
   Future<void> fetchNotifications() async {
     final showLoading = _notifications.isEmpty;
@@ -65,15 +93,15 @@ class NotificationProvider with ChangeNotifier {
           }
         }
 
-        _notifications = fetchedNotifications;
-        _unreadCount = _notifications.where((n) => !n.isRead).length;
+        _rawNotifications = fetchedNotifications;
+        _filterAndNotify();
       }
     } catch (_) {}
 
     if (showLoading) {
       _isLoading = false;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   void startPolling() {
@@ -91,7 +119,7 @@ class NotificationProvider with ChangeNotifier {
   Future<void> markAllRead() async {
     try {
       await _api.patch('/notification/read-all', {});
-      _notifications = _notifications.map((n) => NotificationModel(
+      _rawNotifications = _rawNotifications.map((n) => NotificationModel(
         id: n.id,
         judul: n.judul,
         pesan: n.pesan,
@@ -101,8 +129,7 @@ class NotificationProvider with ChangeNotifier {
         acaraId: n.acaraId,
         latihanId: n.latihanId,
       )).toList();
-      _unreadCount = 0;
-      notifyListeners();
+      _filterAndNotify();
       await fetchNotifications();
     } catch (_) {}
   }

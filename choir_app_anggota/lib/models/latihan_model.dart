@@ -55,6 +55,29 @@ class LatihanModel {
     }
   }
 
+  DateTime? get scheduledReminderTime {
+    try {
+      final cleanJam = jam.replaceAll('.', ':').replaceAll(RegExp(r'[^0-9:]'), '');
+      if (cleanJam.isEmpty || tanggal.isEmpty) return null;
+
+      var timePart = cleanJam;
+      final parts = timePart.split(':');
+      if (parts.length == 1) {
+        timePart = '${parts[0].padLeft(2, '0')}:00:00';
+      } else if (parts.length == 2) {
+        timePart = '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:00';
+      } else if (parts.length == 3) {
+        timePart = '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
+      }
+
+      final parsedStr = '${tanggal}T$timePart+07:00';
+      final practiceTime = DateTime.parse(parsedStr);
+      return practiceTime.subtract(Duration(minutes: waktuNotifikasi));
+    } catch (_) {
+      return null;
+    }
+  }
+
   bool get isRutin => tipeLatihan == 'rutin';
 
   bool get isUpcoming {

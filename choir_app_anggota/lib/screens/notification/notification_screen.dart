@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../providers/latihan_provider.dart';
 import '../../models/notification_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/shared_widgets.dart';
@@ -17,7 +18,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<NotificationProvider>().fetchNotifications();
+      final provider = context.read<NotificationProvider>();
+      final rehearsals = context.read<LatihanProvider>().latihanList;
+      provider.updateRehearsals(rehearsals);
+      provider.fetchNotifications();
     });
   }
 

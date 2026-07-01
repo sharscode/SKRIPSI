@@ -181,31 +181,15 @@ class NotificationHelper {
     final now = DateTime.now();
     for (final l in latihans) {
       try {
-        final cleanJam = l.jam.replaceAll('.', ':').replaceAll(RegExp(r'[^0-9:]'), '');
-        if (cleanJam.isEmpty || l.tanggal.isEmpty) {
-          debugPrint('  - Latihan ${l.id} has empty jam or tanggal. Skipping.');
+        final scheduledTime = l.scheduledReminderTime;
+        if (scheduledTime == null) {
+          debugPrint('  - Latihan ${l.id} scheduled reminder time is null. Skipping.');
           continue;
         }
-
-        // Ensure cleanJam is in HH:mm:ss format
-        var timePart = cleanJam;
-        final parts = timePart.split(':');
-        if (parts.length == 1) {
-          timePart = '${parts[0].padLeft(2, '0')}:00:00';
-        } else if (parts.length == 2) {
-          timePart = '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:00';
-        } else if (parts.length == 3) {
-          timePart = '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
-        }
-
-        final parsedStr = '${l.tanggal}T$timePart+07:00';
-        final practiceTime = DateTime.parse(parsedStr);
-        final scheduledTime = practiceTime.subtract(Duration(minutes: l.waktuNotifikasi));
 
         debugPrint('[Sync Reminders] Latihan ${l.id}:');
         debugPrint('  - Tanggal/Jam: ${l.tanggal} / ${l.jam}');
         debugPrint('  - Waktu Notifikasi Offset: ${l.waktuNotifikasi} minutes');
-        debugPrint('  - Parsed Practice Time: $practiceTime');
         debugPrint('  - Scheduled Notification Time: $scheduledTime');
         debugPrint('  - Current Device Time (Local): $now');
 

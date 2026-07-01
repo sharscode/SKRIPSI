@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/routes.dart';
-import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
 import '../providers/latihan_provider.dart';
 import '../theme/app_colors.dart';
@@ -24,6 +22,7 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  VoidCallback? _latihanListener;
 
   void setIndex(int index) {
     setState(() {
@@ -45,10 +44,21 @@ class MainScreenState extends State<MainScreen> {
     // Fetch notifications and rehearsals on start and start periodic polling
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<NotificationProvider>();
+      final latihanProv = context.read<LatihanProvider>();
+
+      _latihanListener = () {
+        if (mounted) {
+          provider.updateRehearsals(latihanProv.latihanList);
+        }
+      };
+      latihanProv.addListener(_latihanListener!);
+
+      // Sync initial list
+      provider.updateRehearsals(latihanProv.latihanList);
+
       provider.fetchNotifications();
       provider.startPolling();
 
-      final latihanProv = context.read<LatihanProvider>();
       latihanProv.fetchAll();
       latihanProv.startPolling();
     });
@@ -56,6 +66,11 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
+    if (_latihanListener != null) {
+      try {
+        context.read<LatihanProvider>().removeListener(_latihanListener!);
+      } catch (_) {}
+    }
     // Stop polling when main screen is disposed (e.g. on logout)
     context.read<NotificationProvider>().stopPolling();
     try {
