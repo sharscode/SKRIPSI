@@ -90,19 +90,54 @@ function generateRekapPdf(data) {
   doc.y = cardTop + cardHeight + 15;
 
   // ==========================================
-  // VOICE PART DISTRIBUTION SUMMARY
+  // VOICE PART DISTRIBUTION SUMMARY (TABLE)
   // ==========================================
   doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Distribusi Anggota per Suara', 50);
-  doc.moveDown(0.4);
+  doc.moveDown(0.5);
 
   const vc = data.voiceCounts;
-  doc.fontSize(9.5).font('Helvetica').fillColor(COLORS.dark);
-  doc.text(`Sopran: ${vc.sopran}`, 50);
-  doc.text(`Alto: ${vc.alto}`);
-  doc.text(`Tenor: ${vc.tenor}`);
-  doc.text(`Bass: ${vc.bass}`);
-  doc.font('Helvetica-Bold').text(`Total: ${vc.total}`);
-  doc.moveDown(1.2);
+  const distHeaders = ['Bagian Suara', 'Jumlah Anggota'];
+  const distColWidths = [150, 100];
+  const distColAligns = ['left', 'center'];
+
+  let distTableTop = doc.y;
+  
+  // Draw header
+  doc.rect(50, distTableTop - 3, 250, 18).fill(COLORS.navy);
+  doc.fillColor(COLORS.white).font('Helvetica-Bold').fontSize(8.5);
+  doc.text(distHeaders[0], 60, distTableTop, { width: distColWidths[0], align: distColAligns[0] });
+  doc.text(distHeaders[1], 50 + distColWidths[0], distTableTop, { width: distColWidths[1], align: distColAligns[1] });
+  
+  let distRowY = distTableTop + 20;
+  doc.fontSize(8.5).font('Helvetica').fillColor(COLORS.dark);
+
+  const distRows = [
+    ['Sopran', String(vc.sopran)],
+    ['Alto', String(vc.alto)],
+    ['Tenor', String(vc.tenor)],
+    ['Bass', String(vc.bass)],
+    ['Total', String(vc.total)]
+  ];
+
+  distRows.forEach((row, index) => {
+    if (index === 4) {
+      // Highlight Total row slightly
+      doc.rect(50, distRowY - 3, 250, 16).fill('#E2E8F0');
+      doc.fillColor(COLORS.dark).font('Helvetica-Bold');
+    } else if (index % 2 === 0) {
+      doc.rect(50, distRowY - 3, 250, 16).fill(COLORS.subtleBg);
+      doc.fillColor(COLORS.dark).font('Helvetica');
+    } else {
+      doc.fillColor(COLORS.dark).font('Helvetica');
+    }
+
+    doc.text(row[0], 60, distRowY, { width: distColWidths[0], align: distColAligns[0] });
+    doc.text(row[1], 50 + distColWidths[0], distRowY, { width: distColWidths[1], align: distColAligns[1] });
+    doc.moveTo(50, distRowY + 13).lineTo(300, distRowY + 13).lineWidth(0.5).stroke(COLORS.rowLine);
+    distRowY += 17;
+  });
+
+  doc.y = distRowY + 15;
 
   // ==========================================
   // PARTICIPANT TABLE
@@ -178,11 +213,11 @@ function generateRekapPdf(data) {
   // PARTITUR LIST
   // ==========================================
   // Check if we need a new page
-  if (rowY > 620) {
+  if (rowY > 600) {
     doc.addPage();
     rowY = 50;
   } else {
-    rowY = rowY + 15;
+    rowY = rowY + 35; // increased space between Daftar Anggota table and Daftar Partitur header
   }
 
   doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Daftar Partitur', 50);
