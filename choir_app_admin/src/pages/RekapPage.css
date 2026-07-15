@@ -1,0 +1,93 @@
+.rekap-summary {
+  background: linear-gradient(135deg, rgba(107, 145, 184, 0.08), rgba(255, 255, 255, 0.8));
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(107, 145, 184, 0.2);
+  border-radius: var(--r-xl);
+}
+.rekap-event-title {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--c-primary-800);
+  margin-bottom: var(--sp-4);
+}
+.rekap-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  font-size: var(--text-sm);
+  color: var(--c-neutral-600);
+}
+.rekap-meta span {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(107, 145, 184, 0.15);
+  padding: 6px 12px;
+  border-radius: var(--r-md);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-weight: 500;
+}
+
+/* Voice distribution cards */
+.rekap-voice-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+.rekap-voice-card {
+  text-align: center;
+  padding: var(--sp-3) var(--sp-2);
+  border-radius: var(--r-lg);
+  border: 1.5px solid;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.rekap-voice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.rekap-voice-card .label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--sp-1);
+}
+.rekap-voice-card .count {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--c-neutral-900);
+}
+.rekap-voice-card.sopran { border-color: #7C3AED; }
+.rekap-voice-card.sopran .label { color: #7C3AED; }
+.rekap-voice-card.alto { border-color: #2563EB; }
+.rekap-voice-card.alto .label { color: #2563EB; }
+.rekap-voice-card.tenor { border-color: #059669; }
+.rekap-voice-card.tenor .label { color: #059669; }
+.rekap-voice-card.bass { border-color: #DC2626; }
+.rekap-voice-card.bass .label { color: #DC2626; }
+.rekap-voice-card.total {
+  border-color: var(--c-primary-700);
+  background: var(--c-primary-700);
+}
+.rekap-voice-card.total .label { color: rgba(255, 255, 255, 0.85); }
+.rekap-voice-card.total .count { color: #FFFFFF; }
+
+/* Section titles */
+.rekap-section-title {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--c-neutral-800);
+  margin-bottom: var(--sp-3);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+@media (max-width: 640px) {
+  .rekap-voice-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

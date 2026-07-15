@@ -11,6 +11,7 @@ const navItems = [
   { to: '/latihan',    icon: '📅', label: 'Latihan' },
   { to: '/partitur',   icon: '🎼', label: 'Partitur' },
   { to: '/skkk',       icon: '📋', label: 'SKKK' },
+  { to: '/rekap',      icon: '📊', label: 'Rekap Kegiatan' },
   { to: '/admin',      icon: '🔐', label: 'Kelola Admin', superAdminOnly: true },
 ];
 

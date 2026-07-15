@@ -20,6 +20,7 @@ import AbsensiPage from './pages/latihan/AbsensiPage';
 import PartiturListPage from './pages/partitur/PartiturListPage';
 import PartiturFormPage from './pages/partitur/PartiturFormPage';
 import SkkkPage from './pages/SkkkPage';
+import RekapPage from './pages/RekapPage';
 import AdminListPage from './pages/AdminListPage';
 
 function ProtectedRoute({ children }) {
@@ -65,6 +66,7 @@ export default function App() {
               <Route path="/partitur/new" element={<PartiturFormPage />} />
               <Route path="/partitur/:id/edit" element={<PartiturFormPage />} />
               <Route path="/skkk" element={<SkkkPage />} />
+              <Route path="/rekap" element={<RekapPage />} />
               <Route path="/admin" element={<AdminListPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

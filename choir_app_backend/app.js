@@ -18,6 +18,7 @@ const partiturRoutes = require('./modules/partitur/partitur.routes');
 const latihanRoutes = require('./modules/latihan/latihan.routes');
 const absensiRoutes = require('./modules/absensi/absensi.routes');
 // const skkkRoutes = require('./modules/skkk/skkk.routes');
+const rekapRoutes = require('./modules/rekap/rekap.routes');
 const settingsRoutes = require('./modules/settings/settings.routes');
 
 const app = express();
@@ -95,6 +96,7 @@ app.use(`${API}/partitur`, partiturRoutes);
 app.use(`${API}/latihan`, latihanRoutes);
 app.use(`${API}/absensi`, absensiRoutes);
 // app.use(`${API}/skkk`, skkkRoutes);
+app.use(`${API}/rekap`, rekapRoutes);
 app.use(`${API}/settings`, settingsRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   setHeaders: (res, filePath) => {

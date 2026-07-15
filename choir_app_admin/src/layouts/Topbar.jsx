@@ -10,13 +10,14 @@ const breadcrumbMap = {
   '/latihan':     'Latihan',
   '/partitur':    'Partitur',
   '/skkk':        'Laporan SKKK',
+  '/rekap':       'Rekap Kegiatan',
   '/admin':       'Kelola Admin',
 };
 
 const pageIcons = {
   '/dashboard': '📊', '/anggota': '👥', '/anggota-ukm': '🎖',
   '/acara': '🎵', '/latihan': '📅', '/partitur': '🎼',
-  '/skkk': '📋', '/admin': '🔐',
+  '/skkk': '📋', '/rekap': '📊', '/admin': '🔐',
 };
 
 export default function Topbar({ sidebarCollapsed, onMenuClick }) {
