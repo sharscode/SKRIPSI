@@ -38,6 +38,7 @@ const latihanRoutes = require('./modules/latihan/latihan.routes');
 const absensiRoutes = require('./modules/absensi/absensi.routes');
 const dokumentasiRoutes = require('./modules/dokumentasi/dokumentasi.routes');
 const skkkRoutes = require('./modules/skkk/skkk.routes');
+const rekapRoutes = require('./modules/rekap/rekap.routes');
 const notificationRoutes = require('./modules/notification/notification.routes');
 const { settingsRouter, adminRouter } = require('./modules/admin_settings');
 
@@ -88,6 +89,7 @@ app.use('/api/latihan', latihanRoutes);
 app.use('/api/absensi', absensiRoutes);
 app.use('/api/dokumentasi', dokumentasiRoutes);
 app.use('/api/skkk', skkkRoutes);
+app.use('/api/rekap', rekapRoutes);
 app.use('/api/notification', notificationRoutes);
 app.use('/api/settings', settingsRouter);
 app.use('/api/admin', adminRouter);
