@@ -209,15 +209,18 @@ function generateRekapPdf(data) {
     rowY += 17;
   });
 
+  // Sync flow position with the row height
+  doc.y = rowY;
+
   // ==========================================
   // PARTITUR LIST
   // ==========================================
   // Check if we need a new page
-  if (rowY > 600) {
+  if (doc.y > 600) {
     doc.addPage();
-    rowY = 50;
+    doc.y = 50;
   } else {
-    rowY = rowY + 35; // increased space between Daftar Anggota table and Daftar Partitur header
+    doc.y = doc.y + 35; // increased space between Daftar Anggota table and Daftar Partitur header
   }
 
   doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Daftar Partitur', 50);
