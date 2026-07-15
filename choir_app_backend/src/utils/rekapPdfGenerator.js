@@ -92,50 +92,22 @@ function generateRekapPdf(data) {
   // ==========================================
   // VOICE PART DISTRIBUTION SUMMARY
   // ==========================================
-  doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Distribusi Anggota per Suara');
-  doc.moveDown(0.5);
+  doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Distribusi Anggota per Suara', 50);
+  doc.moveDown(0.4);
 
   const vc = data.voiceCounts;
-  const voiceParts = [
-    { label: 'Sopran', count: vc.sopran, color: COLORS.sopran },
-    { label: 'Alto', count: vc.alto, color: COLORS.alto },
-    { label: 'Tenor', count: vc.tenor, color: COLORS.tenor },
-    { label: 'Bass', count: vc.bass, color: COLORS.bass },
-  ];
-
-  // Draw voice count boxes
-  const boxStartX = 50;
-  const boxWidth = 95;
-  const boxHeight = 40;
-  const boxGap = 12;
-  const boxY = doc.y;
-
-  voiceParts.forEach((vp, i) => {
-    const x = boxStartX + i * (boxWidth + boxGap);
-    doc.roundedRect(x, boxY, boxWidth, boxHeight, 4).fill(COLORS.subtleBg);
-    doc.roundedRect(x, boxY, boxWidth, boxHeight, 4).lineWidth(0.75).stroke(vp.color);
-
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(vp.color)
-      .text(vp.label.toUpperCase(), x, boxY + 6, { width: boxWidth, align: 'center' });
-    doc.fontSize(14).font('Helvetica-Bold').fillColor(COLORS.dark)
-      .text(String(vp.count), x, boxY + 20, { width: boxWidth, align: 'center' });
-  });
-
-  // Total box
-  const totalX = boxStartX + 4 * (boxWidth + boxGap);
-  doc.roundedRect(totalX, boxY, boxWidth, boxHeight, 4).fill(COLORS.navy);
-
-  doc.fontSize(8).font('Helvetica-Bold').fillColor(COLORS.white)
-    .text('TOTAL', totalX, boxY + 6, { width: boxWidth, align: 'center' });
-  doc.fontSize(14).font('Helvetica-Bold').fillColor(COLORS.white)
-    .text(String(vc.total), totalX, boxY + 20, { width: boxWidth, align: 'center' });
-
-  doc.y = boxY + boxHeight + 20;
+  doc.fontSize(9.5).font('Helvetica').fillColor(COLORS.dark);
+  doc.text(`Sopran: ${vc.sopran}`, 50);
+  doc.text(`Alto: ${vc.alto}`);
+  doc.text(`Tenor: ${vc.tenor}`);
+  doc.text(`Bass: ${vc.bass}`);
+  doc.font('Helvetica-Bold').text(`Total: ${vc.total}`);
+  doc.moveDown(1.2);
 
   // ==========================================
   // PARTICIPANT TABLE
   // ==========================================
-  doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Daftar Anggota Peserta');
+  doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Daftar Anggota', 50);
   doc.moveDown(0.5);
 
   const colWidths = [35, 85, 200, 90];
@@ -189,8 +161,14 @@ function generateRekapPdf(data) {
     let cellX = 50;
     rowData.forEach((text, i) => {
       doc.text(text, cellX, rowY, { width: colWidths[i], align: colAligns[i] });
-      cellX += colWidths[i];
+      cellX += cellX < 50 ? 0 : colWidths[i]; // safe text offset addition
     });
+
+    // Let's rewrite text render loop more reliably with absolute positioning
+    doc.text(rowData[0], 50, rowY, { width: colWidths[0], align: colAligns[0] });
+    doc.text(rowData[1], 50 + colWidths[0], rowY, { width: colWidths[1], align: colAligns[1] });
+    doc.text(rowData[2], 50 + colWidths[0] + colWidths[1], rowY, { width: colWidths[2], align: colAligns[2] });
+    doc.text(rowData[3], 50 + colWidths[0] + colWidths[1] + colWidths[2], rowY, { width: colWidths[3], align: colAligns[3] });
 
     doc.moveTo(50, rowY + 13).lineTo(545, rowY + 13).lineWidth(0.5).stroke(COLORS.rowLine);
     rowY += 17;
@@ -204,10 +182,10 @@ function generateRekapPdf(data) {
     doc.addPage();
     rowY = 50;
   } else {
-    doc.y = rowY + 15;
+    rowY = rowY + 15;
   }
 
-  doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Partitur Lagu yang Digunakan');
+  doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Daftar Partitur', 50);
   doc.moveDown(0.5);
 
   if (data.partiturList.length === 0) {
