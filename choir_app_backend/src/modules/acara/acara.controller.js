@@ -27,4 +27,8 @@ async function remove(req, res) {
   try { await svc.remove(+req.params.id); sendSuccess(res, 'Acara berhasil dihapus.'); }
   catch (err) { sendError(res, err.message, err.statusCode || 500); }
 }
-module.exports = { getAll, getById, create, update, updateStatus, remove };
+async function getUkmAcaraId(req, res) {
+  try { sendSuccess(res, 'ID acara UKM berhasil diambil.', { acara_id: await svc.getUkmAcaraId() }); }
+  catch (err) { sendError(res, err.message, err.statusCode || 500); }
+}
+module.exports = { getAll, getById, create, update, updateStatus, remove, getUkmAcaraId };

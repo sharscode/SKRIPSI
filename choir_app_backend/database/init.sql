@@ -267,6 +267,7 @@ INSERT INTO admin (nama, email, password, role) VALUES
 
 -- Settings
 INSERT INTO settings (setting_key, setting_value) VALUES ('active_periode', '2025/2026');
+-- 'ukm_acara_id' is inserted further below, right after the "UKM" acara row is created.
 
 -- Anggota / Members (password: Member123! — bcrypt 12 rounds)
 INSERT INTO anggota (nrp, nama_lengkap, bagian_suara, alamat, kontak, email, password) VALUES
@@ -293,29 +294,35 @@ INSERT INTO partitur (judul, komposer, jumlah_suara, jenis_lagu, file_pdf) VALUE
 ('Koor Hallelujah', 'G.F. Handel', 4, 'Oratorio', 'partitur/1776149496895.pdf');
 
 -- Acara (Events)
+-- "UKM" is the fixed, always-present event that every "Latihan UKM" (tipe_latihan='rutin') is tied to.
 INSERT INTO acara (nama_acara, tanggal, jenis_kegiatan, lokasi, penyelenggara, penanggung_jawab, jenis_skkk, status, created_by) VALUES
+('UKM', GETDATE(), 'UKM', 'EH.405', 'UKM Paduan Suara PCU', 'Ketua UKM', 'Bakat & Minat', 'aktif', 1),
 ('Konser Natal 2025', '2025-12-20', 'Konser', 'Aula Universitas Kristen Petra', 'UKM Paduan Suara PCU', 'Dr. Maria Susanti', 'Kegiatan Minat & Bakat', 'aktif', 1),
 ('Lomba Paduan Suara Regional', '2025-10-15', 'Lomba', 'Gedung Kesenian Surabaya', 'Pemerintah Kota Surabaya', 'Prof. Budi Hartono', 'Kegiatan Minat & Bakat', 'aktif', 1);
 
+-- Point the settings key at the "UKM" acara row created above
+INSERT INTO settings (setting_key, setting_value) VALUES ('ukm_acara_id', (SELECT CAST(id AS VARCHAR(10)) FROM acara WHERE nama_acara = 'UKM'));
+
 -- Link partitur to events
 INSERT INTO acara_partitur (acara_id, partitur_id) VALUES
-(1, 1), (1, 3), (2, 2);
+(2, 1), (2, 3), (3, 2);
 
 -- Peserta Acara (Event Participants)
 INSERT INTO peserta_acara (anggota_id, acara_id, status_peserta, approval_status, approved_by) VALUES
-(1, 1, 'ikut', 'disetujui', 1),
-(2, 1, 'ikut', 'disetujui', 1),
-(3, 1, 'ikut', 'disetujui', 1),
-(4, 1, 'ikut', 'menunggu', 1),
-(5, 2, 'ikut', 'disetujui', 1),
-(6, 2, 'ikut', 'disetujui', 1);
+(1, 2, 'ikut', 'disetujui', 1),
+(2, 2, 'ikut', 'disetujui', 1),
+(3, 2, 'ikut', 'disetujui', 1),
+(4, 2, 'ikut', 'menunggu', 1),
+(5, 3, 'ikut', 'disetujui', 1),
+(6, 3, 'ikut', 'disetujui', 1);
 
 -- Latihan (Practice Sessions)
+-- 'rutin' (Latihan UKM) sessions are always tied to the "UKM" acara (id 1); 'sekali' (Latihan Acara) sessions point at any other acara.
 INSERT INTO latihan (tanggal, jam, lokasi, keterangan, tipe_latihan, created_by, acara_id) VALUES
-('2025-12-01', '16:00', 'Ruang Musik Lt. 3', 'Latihan materi Amazing Grace', 'sekali', 1, 1),
-('2025-12-08', '16:00', 'Ruang Musik Lt. 3', 'Latihan materi Hallelujah', 'sekali', 1, 1),
-('2025-10-01', '15:00', 'Ruang Musik Lt. 3', 'Latihan persiapan lomba', 'sekali', 1, 2),
-('2025-09-15', '16:00', 'Ruang Musik Lt. 3', 'Latihan vokal rutin mingguan', 'rutin', 1, NULL);
+('2025-12-01', '16:00', 'Ruang Musik Lt. 3', 'Latihan materi Amazing Grace', 'sekali', 1, 2),
+('2025-12-08', '16:00', 'Ruang Musik Lt. 3', 'Latihan materi Hallelujah', 'sekali', 1, 2),
+('2025-10-01', '15:00', 'Ruang Musik Lt. 3', 'Latihan persiapan lomba', 'sekali', 1, 3),
+('2025-09-15', '16:00', 'Ruang Musik Lt. 3', 'Latihan vokal rutin mingguan', 'rutin', 1, 1);
 
 -- Sample Absensi
 INSERT INTO absensi (status, waktu_checkin, latihan_id, anggota_id) VALUES

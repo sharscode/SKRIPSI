@@ -106,10 +106,11 @@ export default function AcaraFormPage() {
               value={form.nama_acara} 
               onChange={set('nama_acara')} 
               error={errors.nama_acara} 
-              placeholder="Input Nama Acara" 
+              placeholder="Input Nama Acara"
               className="col-4"
               icon="🎵"
               required
+              disabled={isEdit && form.nama_acara === 'UKM'}
             />
             <Input 
               id="tanggal_acara" 

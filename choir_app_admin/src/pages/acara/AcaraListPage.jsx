@@ -73,7 +73,9 @@ export default function AcaraListPage() {
         <div className="row-actions">
           <Button size="sm" variant="secondary" onClick={() => navigate(`/acara/${row.id}`)}>Detail</Button>
           <Button size="sm" variant="ghost" onClick={() => navigate(`/acara/${row.id}/edit`)}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => setConfirm(row)}>×</Button>
+          {row.nama_acara !== 'UKM' && (
+            <Button size="sm" variant="danger" onClick={() => setConfirm(row)}>×</Button>
+          )}
         </div>
       ),
     },

@@ -1,5 +1,15 @@
 const { getPool, sql } = require('../../config/db');
 
+// The fixed "UKM" acara that every 'rutin' (Latihan UKM) session is tied to.
+async function getUkmAcaraId() {
+  const pool = await getPool();
+  const result = await pool.request().query(
+    `SELECT setting_value FROM settings WHERE setting_key = 'ukm_acara_id'`
+  );
+  const value = result.recordset[0]?.setting_value;
+  return value ? +value : null;
+}
+
 async function getAll(query = {}) {
   const pool = await getPool();
   const req = pool.request();
@@ -46,6 +56,9 @@ async function getById(id) {
 }
 
 async function create(data, adminId) {
+  if (data.nama_acara?.trim().toUpperCase() === 'UKM') {
+    throw { statusCode: 400, message: 'Nama acara "UKM" sudah dipakai sebagai acuan Latihan UKM.' };
+  }
   const pool = await getPool();
   const result = await pool.request()
     .input('nama_acara', sql.VarChar, data.nama_acara)
@@ -62,7 +75,11 @@ async function create(data, adminId) {
 }
 
 async function update(id, data) {
-  await getById(id);
+  const existing = await getById(id);
+  const ukmAcaraId = await getUkmAcaraId();
+  if (id === ukmAcaraId && data.nama_acara !== existing.nama_acara) {
+    throw { statusCode: 400, message: 'Acara "UKM" tidak boleh diganti namanya karena dijadikan acuan Latihan UKM.' };
+  }
   const pool = await getPool();
   await pool.request()
     .input('id', sql.Int, id)
@@ -88,8 +105,12 @@ async function updateStatus(id, status) {
 
 async function remove(id) {
   await getById(id);
+  const ukmAcaraId = await getUkmAcaraId();
+  if (id === ukmAcaraId) {
+    throw { statusCode: 400, message: 'Acara "UKM" tidak dapat dihapus karena dijadikan acuan Latihan UKM.' };
+  }
   const pool = await getPool();
   await pool.request().input('id', sql.Int, id).query('DELETE FROM acara WHERE id=@id');
 }
 
-module.exports = { getAll, getById, create, update, updateStatus, remove };
+module.exports = { getAll, getById, create, update, updateStatus, remove, getUkmAcaraId };

@@ -2,6 +2,18 @@ const { v4: uuidv4 } = require('uuid');
 const { getPool, sql } = require('../../config/db');
 const { generateQRDataURL } = require('../../utils/qrGenerator');
 
+// Every 'rutin' (Latihan UKM) session is fixed to the "UKM" acara, whose id
+// is stored in settings.ukm_acara_id (see database/migrations/2026-08-20_ukm_acara.sql).
+async function getUkmAcaraId() {
+  const pool = await getPool();
+  const result = await pool.request().query(
+    `SELECT setting_value FROM settings WHERE setting_key = 'ukm_acara_id'`
+  );
+  const value = result.recordset[0]?.setting_value;
+  if (!value) throw { statusCode: 500, message: 'Acara "UKM" belum dikonfigurasi. Jalankan migrasi database terlebih dahulu.' };
+  return +value;
+}
+
 async function getAll({ tipe_latihan, acara_id }) {
   const pool = await getPool();
   const req = pool.request();
@@ -125,16 +137,27 @@ async function sendLatihanNotifications(latihanId) {
   }
 }
 
+async function resolveAcaraId(tipe_latihan, acara_id) {
+  const ukmAcaraId = await getUkmAcaraId();
+  if (tipe_latihan === 'rutin') {
+    // Latihan UKM is always tied to the "UKM" acara, regardless of what was passed in.
+    return ukmAcaraId;
+  }
+  // tipe_latihan === 'sekali'
+  if (!acara_id) throw { statusCode: 400, message: 'Latihan sekali harus memiliki acara_id.' };
+  if (+acara_id === ukmAcaraId) throw { statusCode: 400, message: 'Latihan sekali tidak boleh dihubungkan ke acara "UKM".' };
+  return +acara_id;
+}
+
 async function create(data, adminId) {
-  if (data.tipe_latihan === 'sekali' && !data.acara_id) throw { statusCode: 400, message: 'Latihan sekali harus memiliki acara_id.' };
-  if (data.tipe_latihan === 'rutin' && data.acara_id) throw { statusCode: 400, message: 'Latihan rutin tidak boleh memiliki acara_id.' };
+  const acaraId = await resolveAcaraId(data.tipe_latihan, data.acara_id);
   const pool = await getPool();
   const result = await pool.request()
     .input('tanggal', sql.Date, data.tanggal).input('jam', sql.VarChar, data.jam)
     .input('lokasi', sql.VarChar, data.lokasi).input('keterangan', sql.VarChar, data.keterangan || null)
     .input('tipe_latihan', sql.VarChar, data.tipe_latihan)
     .input('waktu_notifikasi', sql.Int, +data.waktu_notifikasi || 60)
-    .input('created_by', sql.Int, adminId).input('acara_id', sql.Int, data.acara_id || null)
+    .input('created_by', sql.Int, adminId).input('acara_id', sql.Int, acaraId)
     .query(`INSERT INTO latihan (tanggal, jam, lokasi, keterangan, tipe_latihan, waktu_notifikasi, created_by, acara_id)
             OUTPUT INSERTED.id VALUES (@tanggal, @jam, @lokasi, @keterangan, @tipe_latihan, @waktu_notifikasi, @created_by, @acara_id)`);
   
@@ -152,16 +175,17 @@ async function create(data, adminId) {
 
 async function update(id, data) {
   await getById(id);
+  const acaraId = await resolveAcaraId(data.tipe_latihan, data.acara_id);
   const pool = await getPool();
   await pool.request()
     .input('id', sql.Int, id).input('tanggal', sql.Date, data.tanggal).input('jam', sql.VarChar, data.jam)
     .input('lokasi', sql.VarChar, data.lokasi).input('keterangan', sql.VarChar, data.keterangan || null)
     .input('tipe_latihan', sql.VarChar, data.tipe_latihan)
     .input('waktu_notifikasi', sql.Int, +data.waktu_notifikasi || 60)
-    .input('acara_id', sql.Int, data.acara_id || null)
+    .input('acara_id', sql.Int, acaraId)
     .query('UPDATE latihan SET tanggal=@tanggal, jam=@jam, lokasi=@lokasi, keterangan=@keterangan, tipe_latihan=@tipe_latihan, waktu_notifikasi=@waktu_notifikasi, acara_id=@acara_id WHERE id=@id');
-  
-  await syncAbsensiList(id, data.tipe_latihan, data.acara_id);
+
+  await syncAbsensiList(id, data.tipe_latihan, acaraId);
 
   try {
     await sendLatihanNotifications(id);

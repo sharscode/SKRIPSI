@@ -6,6 +6,7 @@ const { createValidators, statusValidators } = require('./acara.validators');
 const ctrl = require('./acara.controller');
 
 router.get('/', auth, ctrl.getAll);
+router.get('/ukm/id', auth, ctrl.getUkmAcaraId);
 router.get('/:id', auth, ctrl.getById);
 router.post('/', auth, authorize('super_admin','admin'), createValidators, validate, ctrl.create);
 router.put('/:id', auth, authorize('super_admin','admin'), createValidators, validate, ctrl.update);

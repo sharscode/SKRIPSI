@@ -20,14 +20,19 @@ export default function LatihanFormPage() {
 
   const [loading, setLoading]   = useState(false);
   const [acaraList, setAcaraList] = useState([]);
+  const [ukmAcaraId, setUkmAcaraId] = useState(null);
   const [form, setForm] = useState({
     tanggal: '', jam: '', lokasi: '', keterangan: '',
     tipe_latihan: paramAcaraId ? 'sekali' : 'rutin', waktu_notifikasi: 60, acara_id: paramAcaraId || '',
   });
   const [errors, setErrors] = useState({});
 
+  // Latihan Acara ('sekali') may be linked to any acara except "UKM" — Latihan UKM ('rutin') is auto-linked to it.
+  const selectableAcaraList = acaraList.filter((a) => a.id !== ukmAcaraId);
+
   useEffect(() => {
     api.get('/acara').then((r) => setAcaraList(r.data.data.filter((a) => a.status === 'aktif'))).catch(() => {});
+    api.get('/acara/ukm/id').then((r) => setUkmAcaraId(r.data.data.acara_id)).catch(() => {});
     if (isEdit) {
       api.get(`/latihan/${id}`).then((r) => {
         const d = r.data.data;
@@ -133,18 +138,27 @@ export default function LatihanFormPage() {
               icon="⚙️"
               required
             />
-            {form.tipe_latihan === 'sekali' && (
-              <Select 
-                id="acara_latihan" 
-                label="Untuk Acara" 
+            {form.tipe_latihan === 'sekali' ? (
+              <Select
+                id="acara_latihan"
+                label="Untuk Acara"
                 placeholder="Pilih acara..."
-                options={acaraList.map((a) => ({ value: a.id, label: `${a.nama_acara} - ${formatDate(a.tanggal, { day: 'numeric', month: 'short', year: 'numeric' })}` }))}
-                value={form.acara_id} 
-                onChange={set('acara_id')} 
-                error={errors.acara_id} 
+                options={selectableAcaraList.map((a) => ({ value: a.id, label: `${a.nama_acara} - ${formatDate(a.tanggal, { day: 'numeric', month: 'short', year: 'numeric' })}` }))}
+                value={form.acara_id}
+                onChange={set('acara_id')}
+                error={errors.acara_id}
                 className="col-3"
                 icon="📅"
                 required
+              />
+            ) : (
+              <Input
+                id="acara_latihan_ukm"
+                label="Untuk Acara"
+                value="UKM (otomatis)"
+                disabled
+                className="col-3"
+                icon="📅"
               />
             )}
             <Input 
