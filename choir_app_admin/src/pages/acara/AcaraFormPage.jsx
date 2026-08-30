@@ -5,7 +5,9 @@ import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import Button from '../../components/ui/Button';
+import Modal from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
+import { formatDate } from '../../utils/formatDate';
 
 export default function AcaraFormPage() {
   const { id } = useParams();
@@ -19,6 +21,8 @@ export default function AcaraFormPage() {
   });
   const [errors, setErrors] = useState({});
   const [customJenisKegiatan, setCustomJenisKegiatan] = useState('');
+  // Peringatan nama acara kembar pada periode yang sama; null = tidak ada.
+  const [kembarModal, setKembarModal] = useState(null);
 
   useEffect(() => {
     if (isEdit) {
@@ -65,21 +69,37 @@ export default function AcaraFormPage() {
     return Object.keys(err).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+  /**
+   * @param {boolean} abaikanKembar - kirim ulang setelah admin menegaskan bahwa
+   *   nama acara yang kembar di periode yang sama memang disengaja.
+   */
+  const simpan = async (abaikanKembar = false) => {
     setLoading(true);
     try {
       const payload = {
         ...form,
-        jenis_kegiatan: form.jenis_kegiatan === 'Lainnya' ? customJenisKegiatan : form.jenis_kegiatan
+        jenis_kegiatan: form.jenis_kegiatan === 'Lainnya' ? customJenisKegiatan : form.jenis_kegiatan,
+        ...(abaikanKembar ? { abaikan_kembar: true } : {}),
       };
       if (isEdit) { await api.put(`/acara/${id}`, payload); toast('Acara berhasil diperbarui.'); }
       else { await api.post('/acara', payload); toast('Acara berhasil ditambahkan.'); }
+      setKembarModal(null);
       navigate('/acara');
     } catch (err) {
-      toast(err.response?.data?.message || 'Gagal menyimpan data acara.', 'error');
+      const res = err.response?.data;
+      // Nama kembar bukan kegagalan — tawarkan konfirmasi, jangan buang isian form.
+      if (res?.code === 'NAMA_ACARA_KEMBAR') {
+        setKembarModal({ pesan: res.message, acara: res.data || [] });
+        return;
+      }
+      toast(res?.message || 'Gagal menyimpan data acara.', 'error');
     } finally { setLoading(false); }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    simpan(false);
   };
 
   const jenisKegiatan = ['Konser', 'Lomba', 'Festival', 'Perayaan', 'Workshop', 'Pentas Seni', 'Lainnya'];
@@ -205,6 +225,36 @@ export default function AcaraFormPage() {
           </form>
         </Card>
       </div>
+
+      {/* Peringatan: nama acara sudah dipakai pada periode yang sama */}
+      <Modal
+        open={!!kembarModal}
+        onClose={() => setKembarModal(null)}
+        title="Nama acara sudah dipakai"
+        size="sm"
+        footer={<>
+          <Button variant="secondary" onClick={() => setKembarModal(null)}>Ubah Nama</Button>
+          <Button variant="primary" onClick={() => simpan(true)} disabled={loading}>
+            {loading ? 'Menyimpan…' : 'Tetap Simpan'}
+          </Button>
+        </>}
+      >
+        <div className="kembar-warn">
+          <p>{kembarModal?.pesan}</p>
+          <ul>
+            {(kembarModal?.acara || []).map((a) => (
+              <li key={a.id}>
+                <strong>{a.nama_acara}</strong>
+                <span>{formatDate(a.tanggal)} · {a.status}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="kembar-warn-hint">
+            Dua acara bernama sama pada periode yang sama mudah tertukar saat memilih
+            di daftar, karena yang tampil hanya nama dan tanggal.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

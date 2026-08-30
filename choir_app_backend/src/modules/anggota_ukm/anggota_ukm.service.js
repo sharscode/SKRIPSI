@@ -1,4 +1,5 @@
 const { getPool, sql } = require('../../config/db');
+const { syncPesertaUkm } = require('../../utils/ukmAcara');
 
 async function getAll({ periode, status_keaktifan, search }) {
   const pool = await getPool();
@@ -34,6 +35,15 @@ async function register({ anggota_id, periode }) {
   const result = await pool.request()
     .input('anggota_id', sql.Int, anggota_id).input('periode', sql.VarChar, periode)
     .query(`INSERT INTO anggota_ukm (anggota_id, periode) OUTPUT INSERTED.* VALUES (@anggota_id, @periode)`);
+
+  // Anggota aktif otomatis menjadi peserta acara "UKM" — wadah seluruh latihan rutin.
+  // Kegagalan di sini tidak boleh membatalkan pendaftaran yang sudah tersimpan.
+  try {
+    await syncPesertaUkm();
+  } catch (err) {
+    console.error('[anggota_ukm] Gagal menyamakan peserta acara UKM:', err.message);
+  }
+
   return result.recordset[0];
 }
 
@@ -44,6 +54,14 @@ async function updateStatus(id, status_keaktifan) {
     .input('id', sql.Int, id).input('status', sql.VarChar, status_keaktifan)
     .input('tanggal_nonaktif', sql.Date, tanggal_nonaktif)
     .query(`UPDATE anggota_ukm SET status_keaktifan=@status, tanggal_nonaktif=@tanggal_nonaktif, updated_at=GETDATE() WHERE id=@id`);
+
+  // Daftar peserta acara "UKM" harus selalu mencerminkan anggota yang aktif:
+  // diaktifkan → masuk, dinonaktifkan → keluar.
+  try {
+    await syncPesertaUkm();
+  } catch (err) {
+    console.error('[anggota_ukm] Gagal menyamakan peserta acara UKM:', err.message);
+  }
 }
 
 async function getHistory(anggota_id) {

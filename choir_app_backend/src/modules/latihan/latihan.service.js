@@ -1,6 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const { getPool, sql } = require('../../config/db');
 const { generateQRDataURL } = require('../../utils/qrGenerator');
+const { getUkmAcaraId } = require('../../utils/ukmAcara');
 
 async function getAll({ tipe_latihan, acara_id }) {
   const pool = await getPool();
@@ -127,7 +128,14 @@ async function sendLatihanNotifications(latihanId) {
 
 async function create(data, adminId) {
   if (data.tipe_latihan === 'sekali' && !data.acara_id) throw { statusCode: 400, message: 'Latihan sekali harus memiliki acara_id.' };
-  if (data.tipe_latihan === 'rutin' && data.acara_id) throw { statusCode: 400, message: 'Latihan rutin tidak boleh memiliki acara_id.' };
+
+  // Setiap latihan harus terhubung ke sebuah acara. Latihan rutin tidak dibuat
+  // untuk acara tertentu, jadi selalu bermuara ke acara payung "UKM" — apa pun
+  // yang dikirim klien diabaikan supaya tidak ada latihan yatim.
+  if (data.tipe_latihan === 'rutin') {
+    data = { ...data, acara_id: await getUkmAcaraId() };
+  }
+
   const pool = await getPool();
   const result = await pool.request()
     .input('tanggal', sql.Date, data.tanggal).input('jam', sql.VarChar, data.jam)
@@ -152,6 +160,14 @@ async function create(data, adminId) {
 
 async function update(id, data) {
   await getById(id);
+
+  if (data.tipe_latihan === 'sekali' && !data.acara_id) throw { statusCode: 400, message: 'Latihan sekali harus memiliki acara_id.' };
+
+  // Aturan yang sama seperti create(): latihan rutin selalu menempel ke acara "UKM".
+  if (data.tipe_latihan === 'rutin') {
+    data = { ...data, acara_id: await getUkmAcaraId() };
+  }
+
   const pool = await getPool();
   await pool.request()
     .input('id', sql.Int, id).input('tanggal', sql.Date, data.tanggal).input('jam', sql.VarChar, data.jam)

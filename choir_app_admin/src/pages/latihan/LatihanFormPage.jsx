@@ -27,7 +27,10 @@ export default function LatihanFormPage() {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    api.get('/acara').then((r) => setAcaraList(r.data.data.filter((a) => a.status === 'aktif'))).catch(() => {});
+    // Acara "UKM" adalah wadah latihan rutin — tidak boleh dipilih untuk latihan sekali.
+    api.get('/acara')
+      .then((r) => setAcaraList(r.data.data.filter((a) => a.status === 'aktif' && !a.is_ukm)))
+      .catch(() => {});
     if (isEdit) {
       api.get(`/latihan/${id}`).then((r) => {
         const d = r.data.data;
@@ -58,9 +61,11 @@ export default function LatihanFormPage() {
     if (!validate()) return;
     setLoading(true);
     try {
+      // Latihan rutin selalu ditautkan ke acara "UKM" oleh server, jadi acara_id
+      // tidak perlu dikirim untuk tipe ini.
       const payload = {
         ...form,
-        acara_id: form.tipe_latihan === 'rutin' ? null : (+form.acara_id || null),
+        acara_id: form.tipe_latihan === 'rutin' ? undefined : (+form.acara_id || null),
         waktu_notifikasi: +form.waktu_notifikasi,
       };
       if (isEdit) { await api.put(`/latihan/${id}`, payload); toast('Latihan berhasil diperbarui.'); }
@@ -133,10 +138,21 @@ export default function LatihanFormPage() {
               icon="⚙️"
               required
             />
+            {form.tipe_latihan === 'rutin' && (
+              <Input
+                id="acara_latihan_rutin"
+                label="Untuk Acara"
+                value="UKM"
+                icon="📅"
+                className="col-3"
+                readOnly
+                disabled
+              />
+            )}
             {form.tipe_latihan === 'sekali' && (
-              <Select 
-                id="acara_latihan" 
-                label="Untuk Acara" 
+              <Select
+                id="acara_latihan"
+                label="Untuk Acara"
                 placeholder="Pilih acara..."
                 options={acaraList.map((a) => ({ value: a.id, label: `${a.nama_acara} - ${formatDate(a.tanggal, { day: 'numeric', month: 'short', year: 'numeric' })}` }))}
                 value={form.acara_id} 

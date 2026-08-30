@@ -1,4 +1,6 @@
 const { getPool, sql } = require('../../config/db');
+const notificationService = require('../notification/notification.service');
+const { getUkmAcaraId } = require('../../utils/ukmAcara');
 
 async function getAll(query = {}) {
   const pool = await getPool();
@@ -20,7 +22,12 @@ async function getAll(query = {}) {
            a.penanggung_jawab, a.jenis_skkk, a.status, a.created_at,
            ad.nama AS created_by_nama,
            (SELECT COUNT(*) FROM latihan l WHERE l.acara_id = a.id) AS jumlah_latihan,
-           (SELECT COUNT(*) FROM peserta_acara pa WHERE pa.acara_id = a.id AND pa.approval_status = 'disetujui') AS jumlah_peserta
+           (SELECT COUNT(*) FROM peserta_acara pa WHERE pa.acara_id = a.id AND pa.approval_status = 'disetujui') AS jumlah_peserta,
+           -- Penanda acara payung "UKM". Klien memakainya untuk menyembunyikan
+           -- acara ini dari pilihan yang tidak relevan (mis. latihan sekali).
+           CAST(CASE WHEN a.id = (
+                  SELECT TRY_CAST(setting_value AS INT) FROM settings WHERE setting_key = 'ukm_acara_id'
+                ) THEN 1 ELSE 0 END AS BIT) AS is_ukm
     FROM acara a JOIN admin ad ON a.created_by = ad.id
     ${whereClause}
     ORDER BY 
@@ -45,7 +52,101 @@ async function getById(id) {
   return result.recordset[0];
 }
 
+/**
+ * "UKM" adalah nama acara sistem — wadah tetap seluruh latihan rutin, dirujuk
+ * lewat settings.ukm_acara_id. Kalau ada acara kedua bernama sama, pencarian
+ * cadangan berdasarkan nama jadi ambigu dan latihan rutin bisa nyasar.
+ * Nama ini karena itu dikunci.
+ *
+ * @param {string} nama
+ * @param {number} [selfId] - id acara yang sedang diubah (boleh mempertahankan namanya)
+ */
+async function assertNamaBukanUkmCadangan(nama, selfId) {
+  if (String(nama || '').trim().toLowerCase() !== 'ukm') return;
+
+  const ukmId = await getUkmAcaraId().catch(() => null);
+  if (selfId && ukmId && selfId === ukmId) return; // acara UKM itu sendiri
+
+  throw {
+    statusCode: 409,
+    message: 'Nama "UKM" dipakai acara sistem untuk menampung latihan rutin. Pakai nama lain.',
+  };
+}
+
+/**
+ * Batas periode akademik yang memuat sebuah tanggal.
+ * Periode berjalan 1 Agustus s/d 31 Juli, sesuai penamaan 'YYYY/YYYY' di settings.
+ *
+ * @param {string|Date} tanggal
+ * @returns {{mulai: string, selesai: string, label: string}}
+ */
+function batasPeriode(tanggal) {
+  const d = new Date(tanggal);
+  const tahunMulai = d.getMonth() + 1 >= 8 ? d.getFullYear() : d.getFullYear() - 1;
+  return {
+    mulai: `${tahunMulai}-08-01`,
+    selesai: `${tahunMulai + 1}-07-31`,
+    label: `${tahunMulai}/${tahunMulai + 1}`,
+  };
+}
+
+/**
+ * Cari acara lain bernama sama pada periode akademik yang sama.
+ *
+ * Nama kembar tidak dilarang — acara paduan suara memang berulang tiap tahun
+ * ("Konser Natal", "Paskah"). Yang berbahaya adalah dua acara bernama sama di
+ * periode yang sama: daftar pilihan hanya menampilkan nama dan tanggal, jadi
+ * admin bisa salah pilih tanpa sadar dan persetujuan peserta masuk ke acara keliru.
+ */
+async function cariAcaraNamaKembar(nama, tanggal, selfId) {
+  const bersih = String(nama || '').trim();
+  if (!bersih || !tanggal) return { periode: null, acara: [] };
+
+  const { mulai, selesai, label } = batasPeriode(tanggal);
+  const pool = await getPool();
+  const req = pool.request()
+    .input('nama', sql.VarChar, bersih)
+    .input('mulai', sql.Date, mulai)
+    .input('selesai', sql.Date, selesai);
+
+  let where = `WHERE LOWER(LTRIM(RTRIM(a.nama_acara))) = LOWER(@nama)
+               AND a.tanggal BETWEEN @mulai AND @selesai`;
+  if (selfId) {
+    where += ' AND a.id <> @self_id';
+    req.input('self_id', sql.Int, selfId);
+  }
+
+  const result = await req.query(`
+    SELECT a.id, a.nama_acara, a.tanggal, a.status
+    FROM acara a
+    ${where}
+    ORDER BY a.tanggal ASC
+  `);
+  return { periode: label, acara: result.recordset };
+}
+
+/**
+ * Lempar peringatan bila ada nama kembar, kecuali admin sudah menegaskan lanjut.
+ * Sengaja bukan penolakan permanen: klien menampilkan konfirmasi lalu mengirim
+ * ulang dengan abaikan_kembar = true.
+ */
+async function peringatkanNamaKembar(data, selfId) {
+  if (data.abaikan_kembar === true || data.abaikan_kembar === 'true') return;
+
+  const kembar = await cariAcaraNamaKembar(data.nama_acara, data.tanggal, selfId);
+  if (kembar.acara.length === 0) return;
+
+  throw {
+    statusCode: 409,
+    code: 'NAMA_ACARA_KEMBAR',
+    message: `Sudah ada acara bernama "${String(data.nama_acara).trim()}" pada periode ${kembar.periode}.`,
+    data: kembar.acara,
+  };
+}
+
 async function create(data, adminId) {
+  await assertNamaBukanUkmCadangan(data.nama_acara);
+  await peringatkanNamaKembar(data);
   const pool = await getPool();
   const result = await pool.request()
     .input('nama_acara', sql.VarChar, data.nama_acara)
@@ -58,11 +159,30 @@ async function create(data, adminId) {
     .input('created_by', sql.Int, adminId)
     .query(`INSERT INTO acara (nama_acara, tanggal, jenis_kegiatan, lokasi, penyelenggara, penanggung_jawab, jenis_skkk, created_by)
             OUTPUT INSERTED.id VALUES (@nama_acara, @tanggal, @jenis_kegiatan, @lokasi, @penyelenggara, @penanggung_jawab, @jenis_skkk, @created_by)`);
-  return getById(result.recordset[0].id);
+  const acara = await getById(result.recordset[0].id);
+
+  // Beritahu anggota aktif bahwa ada acara baru yang bisa diikuti.
+  // Acara sudah tersimpan di titik ini, jadi kegagalan notifikasi tidak boleh
+  // membatalkannya. Tapi kegagalannya wajib terlihat di log — kalau ditelan diam-diam,
+  // acara bisa ada tanpa seorang pun tahu.
+  try {
+    await notificationService.sendToAnggotaAktif({
+      judul: 'Acara Baru: ' + acara.nama_acara,
+      pesan: 'Ada acara baru yang bisa kamu ikuti. Buka untuk melihat detail dan mendaftar.',
+      tipe: 'info_acara',
+      acara_id: acara.id,
+    });
+  } catch (err) {
+    console.error(`[acara] Gagal mengirim notifikasi acara baru (id=${acara.id}):`, err.message);
+  }
+
+  return acara;
 }
 
 async function update(id, data) {
   await getById(id);
+  await assertNamaBukanUkmCadangan(data.nama_acara, id);
+  await peringatkanNamaKembar(data, id);
   const pool = await getPool();
   await pool.request()
     .input('id', sql.Int, id)
