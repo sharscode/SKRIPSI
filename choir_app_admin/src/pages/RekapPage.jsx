@@ -189,6 +189,36 @@ export default function RekapPage() {
               </tbody>
             </table>
           </div>
+          {/* Evaluasi Kegiatan — hanya bila admin sudah mengisinya */}
+          {preview.evaluasi && (
+            <>
+              <h4 className="rekap-section-title">📝 Evaluasi Kegiatan</h4>
+              <Card className="rekap-eval" style={{ padding: 'var(--sp-5)', marginBottom: 'var(--sp-4)' }}>
+                {preview.evaluasi.skor != null && (
+                  <p className="rekap-eval-score">
+                    Penilaian: <strong>{preview.evaluasi.skor}</strong> dari 5
+                  </p>
+                )}
+                <div className="rekap-eval-block">
+                  <span className="rekap-eval-label">Catatan</span>
+                  <p className="rekap-eval-text">{preview.evaluasi.catatan}</p>
+                </div>
+                {preview.evaluasi.kendala && (
+                  <div className="rekap-eval-block">
+                    <span className="rekap-eval-label">Kendala</span>
+                    <p className="rekap-eval-text">{preview.evaluasi.kendala}</p>
+                  </div>
+                )}
+                {preview.evaluasi.saran && (
+                  <div className="rekap-eval-block">
+                    <span className="rekap-eval-label">Saran Perbaikan</span>
+                    <p className="rekap-eval-text">{preview.evaluasi.saran}</p>
+                  </div>
+                )}
+              </Card>
+            </>
+          )}
+
         </>
       )}
     </div>

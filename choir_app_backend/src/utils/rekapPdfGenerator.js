@@ -93,7 +93,7 @@ function generateRekapPdf(data) {
   // VOICE PART DISTRIBUTION SUMMARY (TABLE)
   // ==========================================
   doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Distribusi Anggota per Suara', 50);
-  doc.moveDown(0.5);
+  doc.moveDown(0.6);
 
   const vc = data.voiceCounts;
   const distHeaders = ['Bagian Suara', 'Jumlah Anggota'];
@@ -137,13 +137,13 @@ function generateRekapPdf(data) {
     distRowY += 17;
   });
 
-  doc.y = distRowY + 15;
+  doc.y = distRowY + 20; // jarak antar bagian, disamakan
 
   // ==========================================
   // PARTICIPANT TABLE
   // ==========================================
   doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Daftar Anggota', 50);
-  doc.moveDown(0.5);
+  doc.moveDown(0.6);
 
   const colWidths = [35, 85, 200, 90];
   const colAligns = ['center', 'left', 'left', 'center'];
@@ -220,11 +220,11 @@ function generateRekapPdf(data) {
     doc.addPage();
     doc.y = 50;
   } else {
-    doc.y = doc.y + 35; // increased space between Daftar Anggota table and Daftar Partitur header
+    doc.y = doc.y + 20; // jarak antar bagian, disamakan dengan bagian lain
   }
 
   doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark).text('Daftar Partitur', 50);
-  doc.moveDown(0.5);
+  doc.moveDown(0.6);
 
   if (data.partiturList.length === 0) {
     doc.fontSize(9).font('Helvetica').fillColor(COLORS.slate)
@@ -281,6 +281,53 @@ function generateRekapPdf(data) {
 
       doc.moveTo(50, pRowY + 13).lineTo(545, pRowY + 13).lineWidth(0.5).stroke(COLORS.rowLine);
       pRowY += 17;
+    });
+
+    // Kembalikan posisi alir ke bawah baris terakhir. Tabel ini digambar dengan
+    // koordinat absolut (pRowY), jadi tanpa langkah ini doc.y masih tertinggal di
+    // header dan bagian berikutnya akan menimpa tabel.
+    doc.y = pRowY;
+  }
+
+  // ==========================================
+  // EVALUASI KEGIATAN (hanya bila admin sudah mengisinya)
+  // ==========================================
+  if (data.evaluasi) {
+    const ev = data.evaluasi;
+
+    // Jangan tinggalkan judul sendirian di kaki halaman.
+    if (doc.y > 640) {
+      doc.addPage();
+      doc.y = 50;
+    } else {
+      doc.y = doc.y + 20;
+    }
+
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.dark)
+      .text('Evaluasi Kegiatan', 50);
+    doc.moveDown(0.6);
+
+    if (ev.skor) {
+      doc.fontSize(9).font('Helvetica-Bold').fillColor(COLORS.navy)
+        .text(`Penilaian: ${ev.skor} dari 5`, 50);
+      doc.moveDown(0.4);
+    }
+
+    [
+      ['Catatan', ev.catatan],
+      ['Kendala', ev.kendala],
+      ['Saran Perbaikan', ev.saran],
+    ].forEach(([label, value]) => {
+      if (!value) return;
+      if (doc.y > 700) {
+        doc.addPage();
+        doc.y = 50;
+      }
+      doc.fontSize(9).font('Helvetica-Bold').fillColor(COLORS.slate).text(label, 50);
+      doc.moveDown(0.25);
+      doc.fontSize(9).font('Helvetica').fillColor(COLORS.dark)
+        .text(value, 50, doc.y, { width: 495, align: 'justify' });
+      doc.moveDown(0.8);
     });
   }
 

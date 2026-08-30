@@ -40,6 +40,7 @@ const dokumentasiRoutes = require('./modules/dokumentasi/dokumentasi.routes');
 const skkkRoutes = require('./modules/skkk/skkk.routes');
 const rekapRoutes = require('./modules/rekap/rekap.routes');
 const notificationRoutes = require('./modules/notification/notification.routes');
+const acaraEvaluasiRoutes = require('./modules/acara_evaluasi/acara_evaluasi.routes');
 const { settingsRouter, adminRouter } = require('./modules/admin_settings');
 
 const app = express();
@@ -83,6 +84,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/anggota', anggotaRoutes);
 app.use('/api/anggota-ukm', anggotaUkmRoutes);
 app.use('/api/acara', acaraRoutes);
+app.use('/api/acara-evaluasi', acaraEvaluasiRoutes);
 app.use('/api/peserta-acara', pesertaRoutes);
 app.use('/api/partitur', partiturRoutes);
 app.use('/api/latihan', latihanRoutes);

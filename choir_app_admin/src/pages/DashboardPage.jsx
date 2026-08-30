@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import Badge from '../components/ui/Badge';
@@ -34,6 +35,7 @@ function StatCard({ icon, label, value, color, loading, delay = 0 }) {
 export default function DashboardPage() {
   const { user } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
   const [stats, setStats]       = useState(null);
   const [events, setEvents]     = useState([]);
   const [latihan, setLatihan]   = useState([]);
@@ -46,6 +48,8 @@ export default function DashboardPage() {
   const [rawLatihan, setRawLatihan]   = useState([]);
   const [rawMembers, setRawMembers]   = useState([]);
   const [totalAnggota, setTotalAnggota] = useState(0);
+  // Acara yang sudah selesai tapi evaluasinya belum ditulis.
+  const [belumEval, setBelumEval] = useState([]);
 
   useEffect(() => {
     Promise.all([
@@ -55,7 +59,9 @@ export default function DashboardPage() {
       api.get('/anggota-ukm?status_keaktifan=aktif'),
       api.get('/settings/active-periode'),
       api.get('/settings/periodes'),
-    ]).then(([a, ac, l, aukm, s, p]) => {
+      api.get('/acara-evaluasi/belum-dievaluasi'),
+    ]).then(([a, ac, l, aukm, s, p, be]) => {
+      setBelumEval(be.data.data || []);
       const activePeriode = s.data.data?.periode || '2025/2026';
       const totAnggota = a.data.data.pagination?.total ?? a.data.data.length;
       
@@ -156,6 +162,36 @@ export default function DashboardPage() {
           </select>
         </div>
       </div>
+
+      {/* Acara selesai yang evaluasinya belum ditulis */}
+      {!loading && belumEval.length > 0 && (
+        <div className="dash-eval-alert">
+          <div className="dash-eval-alert-head">
+            <span className="dash-eval-alert-icon">📝</span>
+            <div>
+              <p className="dash-eval-alert-title">
+                {belumEval.length} acara selesai belum dievaluasi
+              </p>
+              <p className="dash-eval-alert-sub">
+                Evaluasi ikut tercetak pada Rekap Kegiatan.
+              </p>
+            </div>
+          </div>
+          <ul className="dash-eval-alert-list">
+            {belumEval.slice(0, 4).map((e) => (
+              <li key={e.id}>
+                <button type="button" onClick={() => navigate(`/acara/${e.id}`)}>
+                  {e.nama_acara}
+                  <span>{formatDate(e.tanggal)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {belumEval.length > 4 && (
+            <p className="dash-eval-alert-more">dan {belumEval.length - 4} acara lainnya</p>
+          )}
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="dash-stats">

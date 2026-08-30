@@ -52,6 +52,47 @@ export default function AcaraDetailPage() {
   const [docSubmitting, setDocSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
+  // ── Evaluasi kegiatan (hanya untuk acara berstatus 'selesai') ──
+  const [evaluasi, setEvaluasi] = useState(null);
+  const [showEvalModal, setShowEvalModal] = useState(false);
+  const [evalForm, setEvalForm] = useState({ skor: '', catatan: '', kendala: '', saran: '', is_publik: false });
+  const [evalSubmitting, setEvalSubmitting] = useState(false);
+
+  const openEvalModal = () => {
+    setEvalForm({
+      skor: evaluasi?.skor ?? '',
+      catatan: evaluasi?.catatan ?? '',
+      kendala: evaluasi?.kendala ?? '',
+      saran: evaluasi?.saran ?? '',
+      is_publik: !!evaluasi?.is_publik,
+    });
+    setShowEvalModal(true);
+  };
+
+  const submitEvaluasi = async () => {
+    if (!evalForm.catatan.trim()) {
+      toast('Catatan evaluasi wajib diisi.', 'error');
+      return;
+    }
+    setEvalSubmitting(true);
+    try {
+      await api.put(`/acara-evaluasi/${id}`, {
+        skor: evalForm.skor === '' ? null : Number(evalForm.skor),
+        catatan: evalForm.catatan.trim(),
+        kendala: evalForm.kendala.trim() || null,
+        saran: evalForm.saran.trim() || null,
+        is_publik: evalForm.is_publik,
+      });
+      toast('Evaluasi tersimpan.');
+      setShowEvalModal(false);
+      fetchAll();
+    } catch (err) {
+      toast(err.response?.data?.message || 'Gagal menyimpan evaluasi.', 'error');
+    } finally {
+      setEvalSubmitting(false);
+    }
+  };
+
   const fetchAll = () => {
     setLoading(true);
     Promise.all([
@@ -60,12 +101,14 @@ export default function AcaraDetailPage() {
       api.get(`/latihan?acara_id=${id}`),
       api.get(`/partitur/acara/${id}`),
       api.get(`/dokumentasi/acara/${id}`),
-    ]).then(([a, p, l, pt, d]) => {
+      api.get(`/acara-evaluasi/${id}`),
+    ]).then(([a, p, l, pt, d, ev]) => {
       setAcara(a.data.data);
       setPeserta(p.data.data);
       setLatihan(l.data.data);
       setPartitur(pt.data.data);
       setDokumentasi(d.data.data || []);
+      setEvaluasi(ev.data.data || null);
     }).catch(() => toast('Gagal memuat detail acara.', 'error'))
       .finally(() => setLoading(false));
   };
@@ -541,6 +584,63 @@ export default function AcaraDetailPage() {
         </div>
       </Tabs>
 
+      {/* Evaluasi Kegiatan — hanya relevan setelah acara berakhir */}
+      {acara.status === 'selesai' && (
+        <Card className="eval-card">
+          <div className="eval-head">
+            <div>
+              <h3 className="eval-title">Evaluasi Kegiatan</h3>
+              <p className="eval-sub">
+                {evaluasi
+                  ? 'Catatan ini ikut tercetak pada Rekap Kegiatan.'
+                  : 'Belum ada evaluasi. Catat hasil dan pelajaran dari kegiatan ini.'}
+              </p>
+            </div>
+            <div className="row-actions">
+              {evaluasi && <Badge status={evaluasi.is_publik ? 'aktif' : 'menunggu'} />}
+              <Button size="sm" variant="primary" onClick={openEvalModal}>
+                {evaluasi ? 'Ubah Evaluasi' : '+ Tulis Evaluasi'}
+              </Button>
+            </div>
+          </div>
+
+          {evaluasi ? (
+            <div className="eval-body">
+              {evaluasi.skor != null && (
+                <div className="eval-score">
+                  <span className="eval-score-value">{evaluasi.skor}</span>
+                  <span className="eval-score-max">dari 5</span>
+                </div>
+              )}
+              <div className="eval-blocks">
+                <div className="eval-block">
+                  <span className="detail-label">Catatan</span>
+                  <p className="eval-text">{evaluasi.catatan}</p>
+                </div>
+                {evaluasi.kendala && (
+                  <div className="eval-block">
+                    <span className="detail-label">Kendala</span>
+                    <p className="eval-text">{evaluasi.kendala}</p>
+                  </div>
+                )}
+                {evaluasi.saran && (
+                  <div className="eval-block">
+                    <span className="detail-label">Saran Perbaikan</span>
+                    <p className="eval-text">{evaluasi.saran}</p>
+                  </div>
+                )}
+              </div>
+              <p className="eval-meta">
+                {evaluasi.is_publik
+                  ? 'Terlihat oleh anggota (hanya catatan & penilaian).'
+                  : 'Internal — tidak terlihat oleh anggota.'}
+                {evaluasi.nama_admin ? ` · Dicatat oleh ${evaluasi.nama_admin}` : ''}
+              </p>
+            </div>
+          ) : null}
+        </Card>
+      )}
+
       {/* Approval Modal */}
       <Modal open={!!statusModal} onClose={() => setStatusModal(null)} title={`Ubah Status: ${statusModal?.nama_lengkap}`} size="sm"
         footer={<>
@@ -695,6 +795,84 @@ export default function AcaraDetailPage() {
             icon="📝"
             className="col-12"
           />
+        </div>
+      </Modal>
+
+      {/* Modal: Evaluasi Kegiatan */}
+      <Modal
+        open={showEvalModal}
+        onClose={() => setShowEvalModal(false)}
+        title={evaluasi ? 'Ubah Evaluasi Kegiatan' : 'Tulis Evaluasi Kegiatan'}
+        size="md"
+        footer={<>
+          <Button variant="secondary" onClick={() => setShowEvalModal(false)}>Batal</Button>
+          <Button variant="primary" onClick={submitEvaluasi} disabled={evalSubmitting}>
+            {evalSubmitting ? 'Menyimpan…' : 'Simpan Evaluasi'}
+          </Button>
+        </>}
+      >
+        <div className="eval-form">
+          <Select
+            id="eval-skor"
+            label="Penilaian (opsional)"
+            value={String(evalForm.skor)}
+            onChange={(e) => setEvalForm({ ...evalForm, skor: e.target.value })}
+            options={[
+              { value: '', label: 'Tidak dinilai' },
+              { value: '5', label: '5 — Sangat baik' },
+              { value: '4', label: '4 — Baik' },
+              { value: '3', label: '3 — Cukup' },
+              { value: '2', label: '2 — Kurang' },
+              { value: '1', label: '1 — Sangat kurang' },
+            ]}
+          />
+
+          <label className="input-label" htmlFor="eval-catatan">
+            Catatan<span className="required-asterisk" style={{ color: '#ef4444', marginLeft: 4 }}>*</span>
+          </label>
+          <textarea
+            id="eval-catatan"
+            className="eval-textarea"
+            rows={4}
+            maxLength={2000}
+            placeholder="Bagaimana kegiatan berjalan? Apa yang patut dicatat?"
+            value={evalForm.catatan}
+            onChange={(e) => setEvalForm({ ...evalForm, catatan: e.target.value })}
+          />
+
+          <label className="input-label" htmlFor="eval-kendala">Kendala (opsional)</label>
+          <textarea
+            id="eval-kendala"
+            className="eval-textarea"
+            rows={3}
+            maxLength={1000}
+            placeholder="Hambatan yang muncul selama kegiatan"
+            value={evalForm.kendala}
+            onChange={(e) => setEvalForm({ ...evalForm, kendala: e.target.value })}
+          />
+
+          <label className="input-label" htmlFor="eval-saran">Saran Perbaikan (opsional)</label>
+          <textarea
+            id="eval-saran"
+            className="eval-textarea"
+            rows={3}
+            maxLength={1000}
+            placeholder="Apa yang perlu diubah untuk kegiatan berikutnya"
+            value={evalForm.saran}
+            onChange={(e) => setEvalForm({ ...evalForm, saran: e.target.value })}
+          />
+
+          <label className="eval-check">
+            <input
+              type="checkbox"
+              checked={evalForm.is_publik}
+              onChange={(e) => setEvalForm({ ...evalForm, is_publik: e.target.checked })}
+            />
+            <span>
+              Tampilkan ke anggota
+              <small>Anggota hanya melihat penilaian &amp; catatan. Kendala dan saran tetap internal.</small>
+            </span>
+          </label>
         </div>
       </Modal>
 

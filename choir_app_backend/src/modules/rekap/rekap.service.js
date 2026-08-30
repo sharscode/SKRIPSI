@@ -70,6 +70,17 @@ async function getPreview(acara_id) {
     `);
   const partiturList = partiturResult.recordset;
 
+  // 6. Evaluasi kegiatan (null bila acara belum dievaluasi)
+  const evaluasiResult = await pool.request()
+    .input('acara_id', sql.Int, acara_id)
+    .query(`
+      SELECT e.skor, e.catatan, e.kendala, e.saran, e.created_at, ad.nama AS nama_admin
+      FROM acara_evaluasi e
+      LEFT JOIN admin ad ON ad.id = e.created_by
+      WHERE e.acara_id = @acara_id
+    `);
+  const evaluasi = evaluasiResult.recordset[0] || null;
+
   return {
     event: {
       ...event,
@@ -79,6 +90,7 @@ async function getPreview(acara_id) {
     voiceCounts,
     partiturList,
     totalLatihan,
+    evaluasi,
   };
 }
 

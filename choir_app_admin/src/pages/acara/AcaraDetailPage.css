@@ -5,3 +5,42 @@
 .detail-value { font-size: var(--text-sm); font-weight: 500; color: var(--c-neutral-700); }
 .detail-actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; padding-top: var(--sp-2); border-top: 1px solid var(--c-neutral-100); }
 .detail-skeleton-header { padding: 0; }
+
+/* ── Evaluasi Kegiatan ───────────────────────────────────── */
+.eval-card { display: flex; flex-direction: column; gap: var(--sp-4); }
+.eval-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-4); flex-wrap: wrap; }
+.eval-title { font-size: var(--text-base); font-weight: 700; color: var(--c-neutral-800); margin: 0; }
+.eval-sub { font-size: var(--text-xs); color: var(--c-neutral-500); margin: 4px 0 0; }
+
+.eval-body { display: flex; flex-direction: column; gap: var(--sp-4); }
+.eval-score { display: flex; align-items: baseline; gap: 6px; }
+.eval-score-value { font-size: 2rem; font-weight: 700; color: var(--c-primary-600); line-height: 1; }
+.eval-score-max { font-size: var(--text-xs); color: var(--c-neutral-400); text-transform: uppercase; letter-spacing: .5px; }
+
+.eval-blocks { display: flex; flex-direction: column; gap: var(--sp-4); }
+.eval-block { display: flex; flex-direction: column; gap: 4px; }
+.eval-text { margin: 0; font-size: var(--text-sm); color: var(--c-neutral-700); line-height: 1.6; white-space: pre-wrap; }
+
+.eval-meta { margin: 0; font-size: var(--text-xs); color: var(--c-neutral-400); padding-top: var(--sp-2); border-top: 1px solid var(--c-neutral-100); }
+.eval-empty { margin: 0; font-size: var(--text-sm); color: var(--c-neutral-500); line-height: 1.6; }
+
+/* Formulir di dalam modal */
+.eval-form { display: flex; flex-direction: column; gap: var(--sp-2); }
+.eval-textarea {
+  width: 100%;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--c-neutral-800);
+  background: var(--c-white);
+  border: 1px solid var(--c-neutral-200);
+  border-radius: 8px;
+  padding: 10px 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.eval-textarea:focus { outline: 2px solid var(--c-primary-400); outline-offset: 1px; border-color: transparent; }
+.eval-textarea::placeholder { color: var(--c-neutral-400); }
+
+.eval-check { display: flex; align-items: flex-start; gap: 10px; font-size: var(--text-sm); color: var(--c-neutral-700); cursor: pointer; padding-top: var(--sp-2); }
+.eval-check input { margin-top: 3px; flex-shrink: 0; }
+.eval-check small { display: block; font-size: var(--text-xs); color: var(--c-neutral-500); margin-top: 2px; line-height: 1.45; }
