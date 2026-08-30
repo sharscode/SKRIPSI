@@ -8,10 +8,21 @@ Please read and follow these steps to automatically setup, configure, and launch
 ---
 
 ## 🛠️ Step 1: Initialize Database (SQL Server)
-The database schema and seed data are located in `choir_app_backend/init.sql`.
+
+> ⚠️ **Use `choir_app_backend/database/init.sql` — NOT `choir_app_backend/init.sql`.**
+> The file at the backend root is an outdated v1 script: it seeds the admin as
+> `superadmin@choirapp.com` and is missing the `anggota_ukm` and `notification`
+> tables. Running it produces a database the app cannot log into.
+> The current schema (v2.0) lives in `database/init.sql`.
+
+The database schema and seed data are located in `choir_app_backend/database/init.sql`.
 1. Verify if MS SQL Server is active on Sharon's local machine.
-2. If she has `mssql` or `sqlcmd` configured, you can execute `init.sql` automatically.
-3. Otherwise, guide Sharon to open **SQL Server Management Studio (SSMS)**, create a database named `choir_app`, open `choir_app_backend/init.sql`, and execute it (press **F5**).
+2. If she has `mssql` or `sqlcmd` configured, you can execute it automatically:
+   ```bash
+   sqlcmd -S 127.0.0.1,1433 -d choir_app -U choir_user -P "Choir123!" -C -i database/init.sql
+   sqlcmd -S 127.0.0.1,1433 -d choir_app -U choir_user -P "Choir123!" -C -i database/migrations/2026-08-20_ukm_acara.sql
+   ```
+3. Otherwise, guide Sharon to open **SQL Server Management Studio (SSMS)**, create a database named `choir_app`, open `choir_app_backend/database/init.sql`, and execute it (press **F5**). Then run `database/migrations/2026-08-20_ukm_acara.sql` the same way.
 
 ---
 
@@ -36,8 +47,10 @@ The database schema and seed data are located in `choir_app_backend/init.sql`.
 2. Run `npm install` to download dependencies.
 3. Verify that `.env` contains:
    ```env
-   VITE_API_URL=http://localhost:3000/api
+   VITE_API_BASE_URL=http://localhost:3000/api
    ```
+   (The variable is `VITE_API_BASE_URL` — that is the name `src/config/api.js` reads.
+   `.env` is optional: without it the app already falls back to `http://localhost:3000/api`.)
 4. Start the React/Vite development server as a background task:
    ```bash
    # Add execution policy bypass if on Windows PowerShell:

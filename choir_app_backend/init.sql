@@ -1,7 +1,21 @@
 -- ============================================================
--- CHOIR APP - SQL Server Database Initialization Script
--- Jalankan script ini di SQL Server Management Studio (SSMS)
--- atau via sqlcmd
+-- ⚠️  SCRIPT LAMA (v1) — JANGAN DIJALANKAN
+-- ============================================================
+-- Berkas ini TIDAK lagi mencerminkan skema aplikasi. Kekurangannya:
+--   * admin di-seed sebagai 'superadmin@choirapp.com' (yang benar: 'superadmin@pcu.ac.id')
+--   * tabel 'anggota_ukm' dan 'notification' belum ada
+--   * kolom 'updated_at' pada beberapa tabel belum ada
+-- Menjalankan berkas ini menghasilkan database yang tidak bisa dipakai login
+-- dan membuat modul Keanggotaan UKM serta Notifikasi gagal.
+--
+-- ➜  Gunakan  database/init.sql  (v2.0), lalu jalankan berkas di
+--    database/migrations/  sesuai urutan tanggalnya.
+--
+-- Disimpan hanya sebagai arsip riwayat.
+-- ============================================================
+
+-- ============================================================
+-- CHOIR APP - SQL Server Database Initialization Script (v1, arsip)
 -- ============================================================
 
 -- 1. Buat database (skip jika sudah ada)
