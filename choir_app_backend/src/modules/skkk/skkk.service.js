@@ -113,6 +113,60 @@ async function generatePdf(acara_id, excludeMemberIds = []) {
 }
 
 /**
+ * Ringkasan kehadiran seorang anggota, dipecah per acara.
+ *
+ * Riwayat absensi di aplikasi menampilkan persentase gabungan seluruh acara,
+ * padahal SKKK dinilai per acara — seseorang bisa terlihat aman secara
+ * keseluruhan tetapi tidak memenuhi syarat pada acara tertentu.
+ *
+ * Sengaja memakai ambang dan rumus yang sama dengan getPreview(), supaya angka
+ * yang dilihat anggota tidak mungkin berbeda dari yang dipakai pengurus.
+ */
+async function getRingkasanAnggota(anggota_id) {
+  const pool = await getPool();
+  const minKehadiran = await getMinKehadiran();
+
+  const result = await pool.request()
+    .input('anggota_id', sql.Int, anggota_id)
+    .query(`
+      SELECT
+        a.id, a.nama_acara, a.tanggal, a.status, a.jenis_skkk,
+        (SELECT COUNT(*) FROM latihan l WHERE l.acara_id = a.id) AS total_latihan,
+        ISNULL((
+          SELECT COUNT(*)
+          FROM absensi ab
+          JOIN latihan l ON ab.latihan_id = l.id
+          WHERE l.acara_id = a.id AND ab.anggota_id = @anggota_id AND ab.status = 'hadir'
+        ), 0) AS hadir
+      FROM acara a
+      JOIN peserta_acara pa ON pa.acara_id = a.id
+      WHERE pa.anggota_id = @anggota_id AND pa.approval_status = 'disetujui'
+      ORDER BY a.tanggal DESC
+    `);
+
+  const acara = result.recordset.map((r) => {
+    const persentase = r.total_latihan > 0
+      ? Math.round((r.hadir / r.total_latihan) * 1000) / 10
+      : 0;
+    // Acara tanpa latihan tidak bisa dinilai: menandainya "belum memenuhi"
+    // akan menyalahkan anggota atas sesuatu yang belum pernah ada.
+    const belumAdaLatihan = r.total_latihan === 0;
+    return {
+      ...r,
+      persentase,
+      belum_ada_latihan: belumAdaLatihan,
+      memenuhi_syarat: belumAdaLatihan ? null : persentase >= minKehadiran,
+      // Berapa kali hadir lagi agar memenuhi syarat.
+      kurang: belumAdaLatihan
+        ? 0
+        : Math.max(0, Math.ceil((minKehadiran / 100) * r.total_latihan) - r.hadir),
+    };
+  });
+
+  return { min_kehadiran: minKehadiran, acara };
+}
+
+/**
  * Acara selesai yang sudah punya anggota memenuhi syarat SKKK
  * tetapi pengajuannya belum ditandai.
  *
@@ -174,4 +228,4 @@ async function setDiajukan(acara_id, sudah, adminId) {
   }
 }
 
-module.exports = { getPreview, generatePdf, getBelumDiajukan, setDiajukan, getMinKehadiran };
+module.exports = { getPreview, generatePdf, getBelumDiajukan, setDiajukan, getMinKehadiran, getRingkasanAnggota };

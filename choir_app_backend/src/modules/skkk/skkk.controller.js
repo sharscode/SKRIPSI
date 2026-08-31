@@ -33,4 +33,12 @@ async function setDiajukan(req, res) {
   } catch (err) { sendError(res, err.message, err.statusCode || 500); }
 }
 
-module.exports = { preview, download, belumDiajukan, setDiajukan };
+async function ringkasanSaya(req, res) {
+  try {
+    // anggota_id dari token, bukan dari parameter, supaya seorang anggota
+    // tidak bisa melihat rekap kehadiran anggota lain.
+    sendSuccess(res, 'Ringkasan kehadiran berhasil diambil.', await svc.getRingkasanAnggota(req.user.id));
+  } catch (err) { sendError(res, err.message, err.statusCode || 500); }
+}
+
+module.exports = { preview, download, belumDiajukan, setDiajukan, ringkasanSaya };

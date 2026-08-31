@@ -19,10 +19,33 @@ class _AbsensiHistoryScreenState extends State<AbsensiHistoryScreen> {
   bool _loading = true;
   String _selectedFilter = 'Semua';
 
+  /// Rincian kehadiran per acara beserta status kelayakan SKKK.
+  /// Persentase gabungan di atas tidak menentukan apa pun — SKKK dinilai
+  /// per acara, jadi rincian inilah angka yang sebenarnya berlaku.
+  List<Map<String, dynamic>> _ringkasanAcara = [];
+  int _minKehadiran = 75;
+
   @override
   void initState() {
     super.initState();
     _fetchHistory();
+    _fetchRingkasan();
+  }
+
+  Future<void> _fetchRingkasan() async {
+    try {
+      final res = await _api.get('/skkk/saya');
+      if (!mounted || res['success'] != true) return;
+      final d = res['data'] as Map<String, dynamic>;
+      setState(() {
+        _minKehadiran = (d['min_kehadiran'] as num?)?.toInt() ?? 75;
+        _ringkasanAcara = ((d['acara'] as List<dynamic>?) ?? [])
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      });
+    } catch (_) {
+      // Rincian gagal dimuat tidak boleh menghalangi riwayat tampil.
+    }
   }
 
   Future<void> _fetchHistory() async {
@@ -107,6 +130,10 @@ class _AbsensiHistoryScreenState extends State<AbsensiHistoryScreen> {
               ),
             ),
           ),
+
+          // Rincian per acara — inilah angka yang menentukan SKKK.
+          if (!_loading && _ringkasanAcara.isNotEmpty)
+            SliverToBoxAdapter(child: _kartuSkkk()),
 
           if (_loading)
             SliverPadding(
@@ -287,6 +314,131 @@ class _AbsensiHistoryScreenState extends State<AbsensiHistoryScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Rincian kehadiran per acara beserta status kelayakan SKKK.
+  ///
+  /// Persentase besar di header dihitung dari seluruh acara digabung, sehingga
+  /// bisa terlihat aman padahal pada acara tertentu belum memenuhi syarat.
+  /// Kartu ini menampilkan angka yang benar-benar dipakai pengurus.
+  Widget _kartuSkkk() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.workspace_premium_outlined,
+                  size: 18, color: AppColors.primary400),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Kelayakan SKKK per Acara',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.neutral800,
+                  ),
+                ),
+              ),
+              Text(
+                'min $_minKehadiran%',
+                style: const TextStyle(fontSize: 11, color: AppColors.neutral400),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ..._ringkasanAcara.map(_barisAcara),
+        ],
+      ),
+    );
+  }
+
+  Widget _barisAcara(Map<String, dynamic> a) {
+    final belumAdaLatihan = a['belum_ada_latihan'] == true;
+    final memenuhi = a['memenuhi_syarat'] == true;
+    final persen = (a['persentase'] as num?)?.toDouble() ?? 0;
+    final kurang = (a['kurang'] as num?)?.toInt() ?? 0;
+
+    final Color warna = belumAdaLatihan
+        ? AppColors.neutral400
+        : (memenuhi ? AppColors.success : AppColors.warning);
+
+    final String keterangan = belumAdaLatihan
+        ? 'Belum ada latihan'
+        : (memenuhi
+            ? 'Memenuhi syarat'
+            : 'Kurang $kurang kali hadir lagi');
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  a['nama_acara']?.toString() ?? '-',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.neutral800,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                belumAdaLatihan ? '—' : '${a['hadir']}/${a['total_latihan']}',
+                style: const TextStyle(fontSize: 12, color: AppColors.neutral500),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: belumAdaLatihan ? 0 : (persen / 100).clamp(0.0, 1.0),
+              minHeight: 6,
+              backgroundColor: AppColors.neutral100,
+              valueColor: AlwaysStoppedAnimation<Color>(warna),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(
+                belumAdaLatihan
+                    ? Icons.remove_circle_outline
+                    : (memenuhi ? Icons.check_circle_rounded : Icons.info_outline),
+                size: 13,
+                color: warna,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                keterangan,
+                style: TextStyle(fontSize: 11, color: warna, fontWeight: FontWeight.w600),
+              ),
+              const Spacer(),
+              if (!belumAdaLatihan)
+                Text(
+                  '$persen%',
+                  style: TextStyle(fontSize: 11, color: warna, fontWeight: FontWeight.w700),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }

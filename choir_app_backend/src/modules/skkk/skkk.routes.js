@@ -3,6 +3,7 @@ const auth = require('../../middleware/auth');
 const authorize = require('../../middleware/authorize');
 const ctrl = require('./skkk.controller');
 // Didaftarkan sebelum '/:acara_id/...' supaya tidak tertangkap sebagai parameter.
+router.get('/saya', auth, authorize('anggota'), ctrl.ringkasanSaya);
 router.get('/belum-diajukan', auth, authorize('super_admin','admin'), ctrl.belumDiajukan);
 router.put('/:acara_id/diajukan', auth, authorize('super_admin','admin'), ctrl.setDiajukan);
 router.get('/:acara_id/preview', auth, authorize('super_admin','admin'), ctrl.preview);

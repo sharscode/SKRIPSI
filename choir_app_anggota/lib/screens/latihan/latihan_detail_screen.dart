@@ -138,23 +138,31 @@ class _LatihanDetailScreenState extends State<LatihanDetailScreen> {
                   if (l.isUpcoming)
                     Column(
                       children: [
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton.icon(
-                            onPressed: () => Navigator.pushNamed(context, AppRoutes.scanQr),
-                            icon: const Icon(Icons.qr_code_scanner_rounded),
-                            label: const Text('Scan QR Absensi'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary500,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        // Kehadiran yang sudah tercatat lewat scan QR ditampilkan,
+                        // bukan tombol scan lagi — tanpa ini anggota yang sudah
+                        // absen melihat layar yang sama persis seperti belum.
+                        if (_status == 'hadir')
+                          _kartuSudahHadir()
+                        else
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.pushNamed(context, AppRoutes.scanQr),
+                              icon: const Icon(Icons.qr_code_scanner_rounded),
+                              label: const Text('Scan QR Absensi'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary500,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
+                        if (_status != 'hadir') const SizedBox(height: 10),
                         // Bila sudah mengajukan, tampilkan status yang tercatat
                         // supaya anggota tidak ragu apakah pengajuannya masuk.
-                        if (_status == 'izin' || _status == 'sakit')
+                        if (_status == 'hadir')
+                          const SizedBox.shrink()
+                        else if (_status == 'izin' || _status == 'sakit')
                           _kartuStatusIzin()
                         else
                           SizedBox(
@@ -196,6 +204,34 @@ class _LatihanDetailScreenState extends State<LatihanDetailScreen> {
                     ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Konfirmasi bahwa kehadiran sudah tercatat lewat scan QR.
+  Widget _kartuSudahHadir() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.successLight,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.success.withOpacity(0.4)),
+      ),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.check_circle_rounded, color: AppColors.success, size: 20),
+          SizedBox(width: 8),
+          Text(
+            'Kehadiran Anda sudah tercatat',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppColors.neutral800,
+              fontSize: 14,
             ),
           ),
         ],
