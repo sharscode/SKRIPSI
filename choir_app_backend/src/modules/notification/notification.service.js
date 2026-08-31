@@ -63,7 +63,7 @@ async function markRead(id, user) {
   if (user && user.role === 'anggota') {
     request.input('anggota_id', sql.Int, user.id);
     await request.query(
-      'UPDATE notification SET is_read=1 WHERE id=@id AND (anggota_id=@anggota_id OR anggota_id IS NULL)'
+      'UPDATE notification SET is_read=1 WHERE id=@id AND anggota_id=@anggota_id'
     );
     return;
   }
@@ -74,8 +74,11 @@ async function markRead(id, user) {
 async function markAllRead(user) {
   const pool = await getPool();
   if (user.role === 'anggota') {
+    // Hanya baris milik sendiri. Baris siaran (anggota_id NULL) sengaja tidak
+    // disentuh: is_read hanya ada satu per baris, jadi menandainya di sini
+    // membuat notifikasi itu ikut tertandai terbaca bagi semua anggota lain.
     await pool.request().input('anggota_id', sql.Int, user.id)
-      .query('UPDATE notification SET is_read=1 WHERE anggota_id=@anggota_id OR anggota_id IS NULL');
+      .query('UPDATE notification SET is_read=1 WHERE anggota_id=@anggota_id');
   } else {
     await pool.request().query('UPDATE notification SET is_read=1');
   }

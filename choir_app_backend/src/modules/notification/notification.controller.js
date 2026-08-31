@@ -5,8 +5,19 @@ async function getAll(req, res) {
   catch (err) { sendError(res, err.message, err.statusCode || 500); }
 }
 async function send(req, res) {
-  try { await svc.send(req.body); sendSuccess(res, 'Notifikasi berhasil dikirim.', null, 201); }
-  catch (err) { sendError(res, err.message, err.statusCode || 500); }
+  try {
+    // Tanpa anggota_id berarti siaran ke semua anggota aktif. Dikirim sebagai
+    // satu baris per anggota, bukan satu baris bersama — kolom is_read hanya
+    // ada satu per baris, jadi baris bersama membuat status baca satu anggota
+    // ikut berlaku untuk semua.
+    if (!req.body.anggota_id) {
+      const jumlah = await svc.sendToAnggotaAktif(req.body);
+      sendSuccess(res, `Notifikasi berhasil dikirim ke ${jumlah} anggota aktif.`, null, 201);
+      return;
+    }
+    await svc.send(req.body);
+    sendSuccess(res, 'Notifikasi berhasil dikirim.', null, 201);
+  } catch (err) { sendError(res, err.message, err.statusCode || 500); }
 }
 async function markRead(req, res) {
   try { await svc.markRead(+req.params.id, req.user); sendSuccess(res, 'Notifikasi ditandai sudah dibaca.'); }
