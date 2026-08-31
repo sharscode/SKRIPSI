@@ -10,6 +10,17 @@ async function startServer() {
   // 1. Connect to database
   await getPool();
 
+  // 1b. Selaraskan periode akademik dengan tanggal hari ini.
+  // Periode dipakai lima modul sebagai kebenaran sistem, jadi tidak boleh
+  // bergantung pada seseorang yang ingat memperbaruinya tiap Agustus.
+  try {
+    const { sinkronkanPeriodeAktif } = require('./utils/periodeAkademik');
+    const { periode } = await sinkronkanPeriodeAktif();
+    console.log(`   Periode berjalan: ${periode}`);
+  } catch (err) {
+    console.error('⚠️  Gagal menyelaraskan periode akademik:', err.message);
+  }
+
   // 2. Start HTTP server
   const server = app.listen(config.port, () => {
     console.log(`\n🎵 PCU Choir API v2.0 running`);

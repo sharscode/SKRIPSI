@@ -93,6 +93,23 @@ async function syncPesertaUkm() {
         )
     `);
 
+  // Pengaman: bila periode berjalan belum punya satu pun anggota aktif, jangan
+  // mengeluarkan siapa pun. Kondisi itu hampir selalu berarti tahun akademik
+  // baru saja berganti dan anggota belum didaftarkan ulang -- bukan bahwa semua
+  // anggota benar-benar keluar. Tanpa pengaman ini, pergantian periode akan
+  // menghapus seluruh peserta acara UKM tanpa ada yang menyadarinya.
+  const aktif = await pool.request().query(`
+    SELECT COUNT(*) AS jml
+    FROM anggota a
+    JOIN anggota_ukm au ON au.anggota_id = a.id
+    WHERE au.status_keaktifan = 'aktif'
+      AND au.periode = (SELECT setting_value FROM settings WHERE setting_key = 'active_periode')
+  `);
+  if (aktif.recordset[0].jml === 0) {
+    console.warn('[ukm] Periode berjalan belum punya anggota aktif; pengeluaran peserta dilewati.');
+    return { ditambah: added.rowsAffected[0], dikeluarkan: 0, dilewati: true };
+  }
+
   const removed = await pool.request()
     .input('acara_id', sql.Int, ukmAcaraId)
     .query(`

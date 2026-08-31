@@ -19,4 +19,13 @@ async function getHistory(req, res) {
   try { sendSuccess(res, 'Riwayat keanggotaan berhasil diambil.', await svc.getHistory(+req.params.anggota_id)); }
   catch (err) { sendError(res, err.message, err.statusCode || 500); }
 }
-module.exports = { getAll, register, updateStatus, getHistory };
+async function salinPeriode(req, res) {
+  try {
+    const hasil = await svc.salinDariPeriodeSebelumnya();
+    sendSuccess(res, hasil.disalin > 0
+      ? `${hasil.disalin} anggota disalin dari periode ${hasil.dari}.`
+      : `Tidak ada anggota aktif di periode ${hasil.dari} yang bisa disalin.`, hasil);
+  } catch (err) { sendError(res, err.message, err.statusCode || 500); }
+}
+
+module.exports = { getAll, register, updateStatus, getHistory, salinPeriode };

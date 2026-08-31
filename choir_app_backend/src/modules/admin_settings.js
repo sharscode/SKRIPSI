@@ -9,10 +9,11 @@ const authorize = require('../middleware/authorize');
 
 settingsRouter.get('/active-periode', auth, async (req, res) => {
   try {
-    const pool = await getPool();
-    const result = await pool.request().input('key', sql.VarChar, 'active_periode')
-      .query('SELECT setting_value FROM settings WHERE setting_key=@key');
-    sendSuccess(res, 'Periode aktif berhasil diambil.', { periode: result.recordset[0]?.setting_value });
+    // Diselaraskan lebih dulu, sehingga pergantian tahun akademik terpakai
+    // bahkan bila server sudah menyala berbulan-bulan tanpa direstart.
+    const { sinkronkanPeriodeAktif } = require('../utils/periodeAkademik');
+    const { periode } = await sinkronkanPeriodeAktif();
+    sendSuccess(res, 'Periode aktif berhasil diambil.', { periode });
   } catch (err) { sendError(res, err.message, 500); }
 });
 

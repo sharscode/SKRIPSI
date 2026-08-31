@@ -112,14 +112,33 @@ export default function DashboardPage() {
     setLatihan(upcoming);
   }, [periode, rawEvents, rawLatihan, rawMembers, totalAnggota, loading]);
 
-  const handleUpdateActivePeriod = async (newPeriod) => {
+  /**
+   * Ganti periode yang ditampilkan di dashboard.
+   *
+   * Sengaja hanya mengubah tampilan, tidak lagi menulis settings.active_periode.
+   * Setting itu dipakai lima modul sebagai kebenaran sistem — siapa anggota
+   * aktif, siapa penerima notifikasi — dan sekarang diturunkan otomatis dari
+   * tanggal. Melihat data tahun lalu tidak boleh sampai mengubahnya.
+   */
+  const handleUpdateActivePeriod = (newPeriod) => {
+    setPeriode(newPeriod);
+  };
+
+  /**
+   * Salin anggota aktif dari periode sebelumnya ke periode berjalan.
+   * Sengaja dipicu admin, bukan otomatis: keanggotaan tahun baru adalah
+   * keputusan pengurus, dan menyalinnya diam-diam berisiko mempertahankan
+   * anggota yang sudah lulus.
+   */
+  const salinPeriode = async () => {
+    setMenyalin(true);
     try {
-      await api.put('/settings/active-periode', { periode: newPeriod });
-      setPeriode(newPeriod);
-      toast('Periode aktif berhasil diperbarui.', 'success');
+      const res = await api.post('/anggota-ukm/salin-periode');
+      toast(res.data.message, 'success');
+      window.location.reload();
     } catch (err) {
-      toast(err.response?.data?.message || 'Gagal memperbarui periode aktif.', 'error');
-    }
+      toast(err.response?.data?.message || 'Gagal menyalin anggota.', 'error');
+    } finally { setMenyalin(false); }
   };
 
   const hour     = new Date().getHours();
@@ -167,65 +186,52 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Acara selesai yang evaluasinya belum ditulis */}
-      {!loading && belumEval.length > 0 && (
-        <div className="dash-eval-alert">
-          <div className="dash-eval-alert-head">
-            <span className="dash-eval-alert-icon">📝</span>
-            <div>
-              <p className="dash-eval-alert-title">
-                {belumEval.length} acara selesai belum dievaluasi
-              </p>
-              <p className="dash-eval-alert-sub">
-                Evaluasi ikut tercetak pada Rekap Kegiatan.
-              </p>
-            </div>
+      {/* Periode akademik baru dimulai tapi belum ada anggota terdaftar.
+          Keanggotaan dicatat per periode, jadi ini normal terjadi tiap Agustus —
+          tapi harus terlihat, karena selama kosong tidak ada yang menerima
+          notifikasi dan absensi latihan rutin ikut kosong. */}
+      {!loading && stats?.anggotaAktif === 0 && totalAnggota > 0 && (
+        <div className="dash-periode-baru">
+          <div>
+            <p className="dash-periode-title">Periode {periode} belum punya anggota terdaftar</p>
+            <p className="dash-periode-sub">
+              Tahun akademik sudah berganti. Selama daftar ini kosong, notifikasi
+              tidak terkirim dan absensi latihan rutin ikut kosong.
+            </p>
           </div>
-          <ul className="dash-eval-alert-list">
-            {belumEval.slice(0, 4).map((e) => (
-              <li key={e.id}>
-                <button type="button" onClick={() => navigate(`/acara/${e.id}`)}>
-                  {e.nama_acara}
-                  <span>{formatDate(e.tanggal)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          {belumEval.length > 4 && (
-            <p className="dash-eval-alert-more">dan {belumEval.length - 4} acara lainnya</p>
-          )}
+          <button type="button" onClick={salinPeriode} disabled={menyalin}>
+            {menyalin ? 'Menyalin…' : 'Salin dari periode sebelumnya'}
+          </button>
         </div>
       )}
 
-      {/* Acara selesai yang SKKK-nya belum diajukan ke BAKA */}
-      {!loading && belumSkkk.length > 0 && (
-        <div className="dash-eval-alert dash-skkk-alert">
-          <div className="dash-eval-alert-head">
-            <span className="dash-eval-alert-icon">📤</span>
-            <div>
-              <p className="dash-eval-alert-title">
-                {belumSkkk.length} acara siap diajukan SKKK
-              </p>
-              <p className="dash-eval-alert-sub">
-                Sudah ada anggota yang memenuhi syarat kehadiran, tapi pengajuannya belum ditandai.
-              </p>
-            </div>
-          </div>
-          <ul className="dash-eval-alert-list">
-            {belumSkkk.slice(0, 4).map((e) => (
-              <li key={e.id}>
+      {/* Perlu Tindakan — pengingat digabung agar tidak mendorong statistik ke bawah */}
+      {!loading && (belumEval.length > 0 || belumSkkk.length > 0) && (
+        <div className="dash-todo">
+          <p className="dash-todo-title">Perlu Tindakan</p>
+          <ul className="dash-todo-list">
+            {belumEval.map((e) => (
+              <li key={'ev' + e.id}>
+                <button type="button" onClick={() => navigate('/acara/' + e.id)}>
+                  <span className="dash-todo-tag tag-eval">Evaluasi</span>
+                  <span className="dash-todo-name">{e.nama_acara}</span>
+                  <span className="dash-todo-meta">belum dievaluasi</span>
+                </button>
+              </li>
+            ))}
+            {belumSkkk.map((e) => (
+              <li key={'sk' + e.id}>
                 <button type="button" onClick={() => navigate('/skkk')}>
-                  {e.nama_acara}
-                  <span>{e.jumlah_memenuhi} anggota memenuhi syarat</span>
+                  <span className="dash-todo-tag tag-skkk">SKKK</span>
+                  <span className="dash-todo-name">{e.nama_acara}</span>
+                  <span className="dash-todo-meta">{e.jumlah_memenuhi} memenuhi syarat</span>
                 </button>
               </li>
             ))}
           </ul>
-          {belumSkkk.length > 4 && (
-            <p className="dash-eval-alert-more">dan {belumSkkk.length - 4} acara lainnya</p>
-          )}
         </div>
       )}
+
 
       {/* Stat Cards */}
       <div className="dash-stats">

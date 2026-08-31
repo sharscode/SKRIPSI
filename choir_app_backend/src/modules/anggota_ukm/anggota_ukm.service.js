@@ -71,4 +71,51 @@ async function getHistory(anggota_id) {
   return result.recordset;
 }
 
-module.exports = { getAll, register, updateStatus, getHistory };
+/**
+ * Salin anggota aktif dari periode sebelumnya ke periode berjalan.
+ *
+ * Keanggotaan UKM dicatat per periode, sehingga pergantian tahun akademik
+ * membuat daftar anggota aktif kosong sampai ada yang mendaftarkan ulang.
+ * Penyalinan ini sengaja TIDAK otomatis: keanggotaan tahun baru adalah
+ * keputusan pengurus, dan menyalinnya diam-diam berisiko mempertahankan
+ * anggota yang sebenarnya sudah lulus.
+ *
+ * @returns {Promise<{periode: string, dari: string, disalin: number}>}
+ */
+async function salinDariPeriodeSebelumnya() {
+  const pool = await getPool();
+
+  const periodeResult = await pool.request()
+    .query("SELECT setting_value AS periode FROM settings WHERE setting_key = 'active_periode'");
+  const periode = periodeResult.recordset[0]?.periode;
+  if (!periode) throw { statusCode: 500, message: 'Periode berjalan belum diatur.' };
+
+  const tahunMulai = parseInt(periode.split('/')[0], 10);
+  const sebelumnya = `${tahunMulai - 1}/${tahunMulai}`;
+
+  const hasil = await pool.request()
+    .input('periode', sql.VarChar, periode)
+    .input('sebelumnya', sql.VarChar, sebelumnya)
+    .query(`
+      INSERT INTO anggota_ukm (anggota_id, periode, status_keaktifan)
+      SELECT au.anggota_id, @periode, 'aktif'
+      FROM anggota_ukm au
+      WHERE au.periode = @sebelumnya
+        AND au.status_keaktifan = 'aktif'
+        AND NOT EXISTS (
+          SELECT 1 FROM anggota_ukm x
+          WHERE x.anggota_id = au.anggota_id AND x.periode = @periode
+        )
+    `);
+
+  const disalin = hasil.rowsAffected[0];
+  if (disalin > 0) {
+    try { await syncPesertaUkm(); } catch (err) {
+      console.error('[anggota_ukm] Gagal menyamakan peserta UKM setelah penyalinan:', err.message);
+    }
+  }
+
+  return { periode, dari: sebelumnya, disalin };
+}
+
+module.exports = { getAll, register, updateStatus, getHistory, salinDariPeriodeSebelumnya };

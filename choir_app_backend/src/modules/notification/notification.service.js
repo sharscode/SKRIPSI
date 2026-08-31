@@ -24,6 +24,14 @@ async function getForUser(user) {
  * @returns {Promise<number>} jumlah anggota yang menerima notifikasi
  */
 async function sendToAnggotaAktif({ judul, pesan, tipe, acara_id, latihan_id }) {
+  // Penerima ditentukan oleh periode berjalan, jadi pastikan periodenya mutakhir
+  // sebelum menentukan siapa yang aktif.
+  try {
+    await require('../../utils/periodeAkademik').sinkronkanPeriodeAktif();
+  } catch (err) {
+    console.error('[notification] Gagal menyelaraskan periode:', err.message);
+  }
+
   const pool = await getPool();
   const result = await pool.request()
     .input('judul', sql.VarChar, judul)

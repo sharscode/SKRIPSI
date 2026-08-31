@@ -5,6 +5,7 @@ const ctrl = require('./anggota_ukm.controller');
 
 router.get('/', auth, ctrl.getAll);
 router.get('/history/:anggota_id', auth, ctrl.getHistory);
+router.post('/salin-periode', auth, authorize('super_admin', 'admin'), ctrl.salinPeriode);
 router.post('/', auth, authorize('super_admin', 'admin'), ctrl.register);
 router.put('/:id/status', auth, authorize('super_admin', 'admin'), ctrl.updateStatus);
 module.exports = router;
