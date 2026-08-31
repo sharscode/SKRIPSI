@@ -1,13 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/latihan_model.dart';
 import '../../config/routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/shared_widgets.dart';
 import '../../services/api_service.dart';
+import '../../providers/auth_provider.dart';
 
-class LatihanDetailScreen extends StatelessWidget {
+class LatihanDetailScreen extends StatefulWidget {
   final LatihanModel latihan;
   const LatihanDetailScreen({super.key, required this.latihan});
+
+  @override
+  State<LatihanDetailScreen> createState() => _LatihanDetailScreenState();
+}
+
+class _LatihanDetailScreenState extends State<LatihanDetailScreen> {
+  /// Status absensi anggota untuk latihan ini: hadir/izin/sakit/alpha.
+  String? _status;
+  String? _keterangan;
+
+  LatihanModel get latihan => widget.latihan;
+
+  @override
+  void initState() {
+    super.initState();
+    _muatStatus();
+  }
+
+  /// Ambil status absensi anggota untuk latihan ini, supaya layar mencerminkan
+  /// pengajuan yang sudah pernah dikirim alih-alih tampak belum pernah ada.
+  Future<void> _muatStatus() async {
+    final userId = context.read<AuthProvider>().user?.id;
+    if (userId == null) return;
+    try {
+      final res = await ApiService().get('/absensi/anggota/$userId');
+      final list = (res['data'] as List<dynamic>? ?? []);
+      final cocok = list
+          .cast<Map<String, dynamic>>()
+          .where((e) => e['latihan_id'] == latihan.id);
+      if (!mounted) return;
+      setState(() {
+        _status = cocok.isEmpty ? null : cocok.first['status']?.toString();
+        _keterangan = cocok.isEmpty ? null : cocok.first['keterangan']?.toString();
+      });
+    } catch (_) {
+      // Kegagalan memuat status tidak boleh menghalangi halaman tampil.
+    }
+  }
 
   /// Buka formulir pengajuan izin/sakit untuk latihan ini.
   Future<void> _ajukanIzin(BuildContext context) async {
@@ -22,6 +62,7 @@ class LatihanDetailScreen extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(hasil), backgroundColor: AppColors.success),
       );
+      _muatStatus();
     }
   }
 
@@ -111,21 +152,25 @@ class LatihanDetailScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        // Berhalangan hadir tidak lagi perlu japri pengurus.
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: OutlinedButton.icon(
-                            onPressed: () => _ajukanIzin(context),
-                            icon: const Icon(Icons.event_busy_rounded, size: 20),
-                            label: const Text('Ajukan Izin / Sakit'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary600,
-                              side: const BorderSide(color: AppColors.primary200),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        // Bila sudah mengajukan, tampilkan status yang tercatat
+                        // supaya anggota tidak ragu apakah pengajuannya masuk.
+                        if (_status == 'izin' || _status == 'sakit')
+                          _kartuStatusIzin()
+                        else
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _ajukanIzin(context),
+                              icon: const Icon(Icons.event_busy_rounded, size: 20),
+                              label: const Text('Ajukan Izin / Sakit'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary600,
+                                side: const BorderSide(color: AppColors.primary200),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     )
                   else
@@ -151,6 +196,60 @@ class LatihanDetailScreen extends StatelessWidget {
                     ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ringkasan pengajuan izin/sakit yang sudah tercatat, dengan opsi mengubah.
+  Widget _kartuStatusIzin() {
+    final izin = _status == 'izin';
+    final label = izin ? 'Izin' : 'Sakit';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warningLight,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.warning.withOpacity(0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(izin ? Icons.event_busy_rounded : Icons.healing_rounded,
+                  size: 18, color: AppColors.warning),
+              const SizedBox(width: 8),
+              Text(
+                'Anda mengajukan $label',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutral800,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          if (_keterangan != null && _keterangan!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              _keterangan!,
+              style: const TextStyle(fontSize: 13, color: AppColors.neutral600, height: 1.4),
+            ),
+          ],
+          const SizedBox(height: 10),
+          TextButton.icon(
+            onPressed: () => _ajukanIzin(context),
+            icon: const Icon(Icons.edit_outlined, size: 16),
+            label: const Text('Ubah pengajuan'),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primary600,
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(0, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
         ],

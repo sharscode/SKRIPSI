@@ -67,9 +67,12 @@ class _HomeScreenState extends State<HomeScreen> {
     myUpcomingList.sort((a, b) => a.tanggal.compareTo(b.tanggal));
     final myUpcoming = myUpcomingList.isNotEmpty ? myUpcomingList.first : null;
 
-    // Filter Global Upcoming Acara (Active, on or after today)
+    // Filter Global Upcoming Acara (Active, on or after today).
+    // Acara yang sudah diikuti dikecualikan — kalau tidak, acara yang sama
+    // muncul dua kali: sekali di daftar acara yang diikuti dan sekali di sini.
     final globalUpcomingList = allEvents.where((a) {
       if (a.status != 'aktif') return false;
+      if (myActiveRegIds.contains(a.id)) return false;
       final dt = a.tanggalAsDate;
       if (dt == null) return false;
       final aDate = DateTime(dt.year, dt.month, dt.day);
@@ -254,10 +257,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-            // ── Acara Mendatang (Personal) ───────────────────
+            // ── Acara yang sudah diikuti anggota ─────────────
             SliverToBoxAdapter(
               child: SectionHeader(
-                title: 'Acara Mendatang',
+                title: 'Acara yang Saya Ikuti',
                 actionLabel: 'Lihat Semua',
                 onAction: () => MainScreen.of(context)?.setIndex(1),
               ),
@@ -267,10 +270,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-            // ── Acara Mendatang (Global) ─────────────────────
+            // ── Acara terbuka yang belum diikuti ─────────────
             SliverToBoxAdapter(
               child: SectionHeader(
-                title: 'Acara Mendatang (Global)',
+                title: 'Acara Lain yang Bisa Diikuti',
                 actionLabel: 'Lihat Semua',
                 onAction: () => MainScreen.of(context)?.setIndex(1),
               ),
@@ -494,8 +497,8 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: EmptyState(
           emoji: '🎭',
-          title: 'Belum ada acara aktif',
-          subtitle: 'Acara aktif mendatang akan muncul di sini',
+          title: 'Tidak ada acara lain',
+          subtitle: 'Semua acara yang terbuka sudah Anda ikuti',
           isMini: true,
         ),
       );

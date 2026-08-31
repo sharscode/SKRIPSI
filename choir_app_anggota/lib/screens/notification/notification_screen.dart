@@ -166,9 +166,27 @@ class _NotifCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      notif.timeAgo,
-                      style: const TextStyle(fontSize: 11, color: AppColors.neutral400),
+                    Row(
+                      children: [
+                        Text(
+                          notif.timeAgo,
+                          style: const TextStyle(fontSize: 11, color: AppColors.neutral400),
+                        ),
+                        // Petunjuk bahwa notifikasi ini mengantar ke halaman acaranya.
+                        if (notif.acaraId != null) ...[
+                          const Spacer(),
+                          const Text(
+                            'Lihat acara',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.primary400,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right_rounded,
+                              size: 16, color: AppColors.primary400),
+                        ],
+                      ],
                     ),
                   ],
                 ),
