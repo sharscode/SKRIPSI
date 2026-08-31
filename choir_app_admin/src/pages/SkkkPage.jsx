@@ -56,6 +56,17 @@ export default function SkkkPage() {
   };
 
   /**
+   * Sisakan hanya anggota yang memenuhi ambang kehadiran.
+   *
+   * Inti dari ambang SKKK adalah menghilangkan pemilahan manual; tanpa tombol
+   * ini admin tetap harus mencentang satu per satu dan tujuannya tidak tercapai.
+   */
+  const pilihYangMemenuhi = () => {
+    if (!preview) return;
+    setExcludedIds(preview.participants.filter((p) => !p.memenuhi_syarat).map((p) => p.id));
+  };
+
+  /**
    * Tandai SKKK acara ini sudah diajukan ke BAKA, atau batalkan penandaannya.
    * Selama belum ditandai, acara ini tetap muncul di pengingat Dashboard.
    */
@@ -105,6 +116,11 @@ export default function SkkkPage() {
             options={events.map((e) => ({ value: e.id, label: `${e.nama_acara} (${formatDate(e.tanggal, { month: 'short' })})` }))}
             value={selected} onChange={(e) => loadPreview(e.target.value)}
             className="filter-search" />
+          {preview && preview.jumlah_memenuhi > 0 && (
+            <Button variant="secondary" onClick={pilihYangMemenuhi} id="btn-pilih-memenuhi">
+              ✅ Pilih yang Memenuhi Syarat ({preview.jumlah_memenuhi})
+            </Button>
+          )}
           {preview && (
             <Button variant="primary" onClick={downloadPdf} loading={downloading} id="btn-download-skkk">
               📥 Download PDF
@@ -162,8 +178,8 @@ export default function SkkkPage() {
                   <th>NRP</th>
                   <th>Nama</th>
                   <th>Suara</th>
-                  <th>Hadir</th>
-                  <th>Total</th>
+                  <th className="col-opsional">Hadir</th>
+                  <th className="col-opsional">Total</th>
                   <th>% Kehadiran</th>
                   <th>Syarat SKKK</th>
                 </tr>
@@ -191,8 +207,8 @@ export default function SkkkPage() {
                         <td>{p.nrp}</td>
                         <td><strong>{p.nama_lengkap}</strong></td>
                         <td><Badge status={p.bagian_suara} /></td>
-                        <td>{p.hadir}</td>
-                        <td>{p.total_latihan}</td>
+                        <td className="col-opsional">{p.hadir}</td>
+                        <td className="col-opsional">{p.total_latihan}</td>
                         <td>
                           {/* Warna mengikuti ambang yang berlaku, bukan angka tetap,
                               supaya tidak bertentangan dengan penilaian syarat. */}

@@ -28,3 +28,9 @@
   font-weight: 500;
 }
 
+
+/* Kolom Hadir & Total disembunyikan di layar sempit.
+   Persentase dan status Syarat SKKK sudah memuat informasi yang sama. */
+@media (max-width: 900px) {
+  .table .col-opsional { display: none; }
+}
