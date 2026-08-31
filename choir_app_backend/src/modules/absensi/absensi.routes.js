@@ -4,6 +4,7 @@ const authorize = require('../../middleware/authorize');
 const ctrl = require('./absensi.controller');
 
 router.post('/scan', auth, ctrl.scanQR);
+router.post('/izin', auth, authorize('anggota'), ctrl.ajukanIzin);
 router.put('/status', auth, authorize('super_admin','admin'), ctrl.upsertStatus);
 router.get('/latihan/:latihan_id', auth, ctrl.getByLatihan);
 router.get('/anggota/:anggota_id', auth, ctrl.getByAnggota);

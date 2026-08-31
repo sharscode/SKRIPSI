@@ -71,6 +71,65 @@ async function scanQR({ qr_token, anggota_id }) {
  * Upsert attendance status (admin manual override).
  * Creates record if not exists, updates if exists.
  */
+/**
+ * Anggota mengajukan izin atau sakit untuk sebuah latihan, dari aplikasinya
+ * sendiri. Sebelumnya hanya admin yang bisa mengubah status absensi, sehingga
+ * anggota yang berhalangan tetap harus menghubungi pengurus di luar sistem.
+ *
+ * Dua batasan yang disengaja:
+ * - Hanya untuk latihan yang belum lewat. Kalau latihan yang sudah berlalu
+ *   boleh diubah, anggota bisa mengubah 'alpha' miliknya sendiri menjadi
+ *   'izin' dan itu merusak dasar perhitungan SKKK.
+ * - Tidak boleh menimpa status 'hadir' yang sudah tercatat lewat scan QR.
+ */
+async function ajukanIzin({ latihan_id, anggota_id, status, keterangan }) {
+  if (!['izin', 'sakit'].includes(status)) {
+    throw { statusCode: 400, message: 'Status pengajuan harus izin atau sakit.' };
+  }
+
+  const pool = await getPool();
+
+  const latihanResult = await pool.request()
+    .input('id', sql.Int, latihan_id)
+    .query('SELECT id, tanggal FROM latihan WHERE id = @id');
+  const latihan = latihanResult.recordset[0];
+  if (!latihan) throw { statusCode: 404, message: 'Latihan tidak ditemukan.' };
+
+  const hariIni = new Date();
+  hariIni.setHours(0, 0, 0, 0);
+  const tanggalLatihan = new Date(latihan.tanggal);
+  tanggalLatihan.setHours(0, 0, 0, 0);
+  if (tanggalLatihan < hariIni) {
+    throw { statusCode: 400, message: 'Latihan sudah lewat. Hubungi pengurus untuk perubahan.' };
+  }
+
+  const existing = await pool.request()
+    .input('latihan_id', sql.Int, latihan_id)
+    .input('anggota_id', sql.Int, anggota_id)
+    .query('SELECT id, status FROM absensi WHERE latihan_id = @latihan_id AND anggota_id = @anggota_id');
+  const baris = existing.recordset[0];
+
+  if (baris && baris.status === 'hadir') {
+    throw { statusCode: 400, message: 'Kehadiran Anda sudah tercatat untuk latihan ini.' };
+  }
+
+  const req = pool.request()
+    .input('latihan_id', sql.Int, latihan_id)
+    .input('anggota_id', sql.Int, anggota_id)
+    .input('status', sql.VarChar, status)
+    .input('keterangan', sql.VarChar, keterangan || null);
+
+  if (baris) {
+    await req.query(`UPDATE absensi SET status = @status, keterangan = @keterangan
+                     WHERE latihan_id = @latihan_id AND anggota_id = @anggota_id`);
+  } else {
+    await req.query(`INSERT INTO absensi (status, keterangan, latihan_id, anggota_id)
+                     VALUES (@status, @keterangan, @latihan_id, @anggota_id)`);
+  }
+
+  return { latihan_id, status, keterangan: keterangan || null };
+}
+
 async function upsertStatus({ latihan_id, anggota_id, status }) {
   const pool = await getPool();
   const existing = await pool.request()
@@ -234,4 +293,4 @@ async function getStatsByAcara(acara_id) {
   return result.recordset;
 }
 
-module.exports = { scanQR, upsertStatus, getByLatihan, getByAnggota, getStatsByAcara };
+module.exports = { scanQR, ajukanIzin, upsertStatus, getByLatihan, getByAnggota, getStatsByAcara };
