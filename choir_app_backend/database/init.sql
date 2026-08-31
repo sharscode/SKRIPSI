@@ -294,8 +294,8 @@ INSERT INTO partitur (judul, komposer, jumlah_suara, jenis_lagu, file_pdf) VALUE
 
 -- Acara (Events)
 INSERT INTO acara (nama_acara, tanggal, jenis_kegiatan, lokasi, penyelenggara, penanggung_jawab, jenis_skkk, status, created_by) VALUES
-('Konser Natal 2025', '2025-12-20', 'Konser', 'Aula Universitas Kristen Petra', 'UKM Paduan Suara PCU', 'Dr. Maria Susanti', 'Kegiatan Minat & Bakat', 'aktif', 1),
-('Lomba Paduan Suara Regional', '2025-10-15', 'Lomba', 'Gedung Kesenian Surabaya', 'Pemerintah Kota Surabaya', 'Prof. Budi Hartono', 'Kegiatan Minat & Bakat', 'aktif', 1);
+('Konser Natal 2025', '2025-12-20', 'Konser', 'Aula Universitas Kristen Petra', 'UKM Paduan Suara PCU', 'Dr. Maria Susanti', 'Bakat & Minat', 'aktif', 1),
+('Lomba Paduan Suara Regional', '2025-10-15', 'Lomba', 'Gedung Kesenian Surabaya', 'Pemerintah Kota Surabaya', 'Prof. Budi Hartono', 'Bakat & Minat', 'aktif', 1);
 
 -- Link partitur to events
 INSERT INTO acara_partitur (acara_id, partitur_id) VALUES

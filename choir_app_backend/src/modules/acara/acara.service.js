@@ -156,9 +156,18 @@ async function create(data, adminId) {
     .input('penyelenggara', sql.VarChar, data.penyelenggara)
     .input('penanggung_jawab', sql.VarChar, data.penanggung_jawab)
     .input('jenis_skkk', sql.VarChar, data.jenis_skkk)
+    // Field formulir SKKK BAKA. Dibiarkan jatuh ke bawaan bila belum diisi,
+    // supaya acara tetap bisa dibuat tanpa memaksa pengurus mengisi enam
+    // field administratif lebih dulu.
+    .input('jenis_kepanitiaan', sql.VarChar, data.jenis_kepanitiaan || 'Kurang dari 1 tahun')
+    .input('lingkup', sql.VarChar, data.lingkup || 'Universitas')
+    .input('lembaga', sql.VarChar, data.lembaga || null)
+    .input('jabatan_default', sql.VarChar, data.jabatan_default || 'ANGGOTA UKM')
     .input('created_by', sql.Int, adminId)
-    .query(`INSERT INTO acara (nama_acara, tanggal, jenis_kegiatan, lokasi, penyelenggara, penanggung_jawab, jenis_skkk, created_by)
-            OUTPUT INSERTED.id VALUES (@nama_acara, @tanggal, @jenis_kegiatan, @lokasi, @penyelenggara, @penanggung_jawab, @jenis_skkk, @created_by)`);
+    .query(`INSERT INTO acara (nama_acara, tanggal, jenis_kegiatan, lokasi, penyelenggara, penanggung_jawab,
+              jenis_skkk, jenis_kepanitiaan, lingkup, lembaga, jabatan_default, created_by)
+            OUTPUT INSERTED.id VALUES (@nama_acara, @tanggal, @jenis_kegiatan, @lokasi, @penyelenggara, @penanggung_jawab,
+              @jenis_skkk, @jenis_kepanitiaan, @lingkup, @lembaga, @jabatan_default, @created_by)`);
   const acara = await getById(result.recordset[0].id);
 
   // Beritahu anggota aktif bahwa ada acara baru yang bisa diikuti.
@@ -193,9 +202,14 @@ async function update(id, data) {
     .input('penyelenggara', sql.VarChar, data.penyelenggara)
     .input('penanggung_jawab', sql.VarChar, data.penanggung_jawab)
     .input('jenis_skkk', sql.VarChar, data.jenis_skkk)
+    .input('jenis_kepanitiaan', sql.VarChar, data.jenis_kepanitiaan || 'Kurang dari 1 tahun')
+    .input('lingkup', sql.VarChar, data.lingkup || 'Universitas')
+    .input('lembaga', sql.VarChar, data.lembaga || null)
+    .input('jabatan_default', sql.VarChar, data.jabatan_default || 'ANGGOTA UKM')
     .query(`UPDATE acara SET nama_acara=@nama_acara, tanggal=@tanggal, jenis_kegiatan=@jenis_kegiatan,
               lokasi=@lokasi, penyelenggara=@penyelenggara, penanggung_jawab=@penanggung_jawab,
-              jenis_skkk=@jenis_skkk WHERE id=@id`);
+              jenis_skkk=@jenis_skkk, jenis_kepanitiaan=@jenis_kepanitiaan, lingkup=@lingkup,
+              lembaga=@lembaga, jabatan_default=@jabatan_default WHERE id=@id`);
   return getById(id);
 }
 

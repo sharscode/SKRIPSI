@@ -543,6 +543,12 @@ img { max-width: 100%; }
   padding-bottom: var(--sp-1);
   border-bottom: 1.5px solid var(--c-primary-100);
 }
+.form-section-hint {
+  grid-column: span 6;
+  font-size: var(--text-xs);
+  color: var(--c-neutral-500);
+  margin-top: calc(-1 * var(--sp-2));
+}
 .form-actions-row {
   grid-column: span 6;
   display: flex;

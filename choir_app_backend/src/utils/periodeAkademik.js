@@ -9,8 +9,6 @@
  * memperbaruinya tiap Agustus — nilainya diturunkan dari tanggal, dan
  * diselaraskan sendiri saat ditemukan tertinggal.
  */
-const { getPool, sql } = require('../config/db');
-
 /** Bulan awal periode akademik (1 = Januari). */
 const BULAN_AWAL = 8;
 
@@ -27,6 +25,22 @@ function hitungPeriode(tanggal = new Date()) {
 }
 
 /**
+ * Periode dalam format yang dipakai formulir SKKK BAKA: '<semester>-YYYY/YYYY'.
+ *
+ * Semester 1 berjalan Agustus sampai Januari, semester 2 Februari sampai Juli.
+ * Rumus ini diturunkan dari dua contoh formulir resmi: logdate Oktober 2024
+ * tercetak '1-2024/2025', dan logdate Mei 2025 tercetak '2-2024/2025'.
+ *
+ * @param {Date} [tanggal] - default hari ini
+ * @returns {string} misal '1-2026/2027'
+ */
+function hitungPeriodeSkkk(tanggal = new Date()) {
+  const bulan = tanggal.getMonth() + 1;
+  const semester = bulan >= BULAN_AWAL || bulan === 1 ? 1 : 2;
+  return `${semester}-${hitungPeriode(tanggal)}`;
+}
+
+/**
  * Pastikan settings.active_periode sesuai tanggal hari ini.
  *
  * Dipanggil saat server menyala dan pada jalur yang bergantung pada periode,
@@ -36,6 +50,12 @@ function hitungPeriode(tanggal = new Date()) {
  * @returns {Promise<{periode: string, berubah: boolean}>}
  */
 async function sinkronkanPeriodeAktif() {
+  // Dimuat di sini, bukan di puncak berkas: hitungPeriode() dan
+  // hitungPeriodeSkkk() adalah fungsi murni tanggal, dan pemanggilnya
+  // (antara lain pencetak PDF) tidak seharusnya ikut menarik konfigurasi
+  // database hanya untuk memakainya.
+  const { getPool, sql } = require('../config/db');
+
   const seharusnya = hitungPeriode();
   const pool = await getPool();
 
@@ -61,4 +81,4 @@ async function sinkronkanPeriodeAktif() {
   return { periode: seharusnya, berubah: true };
 }
 
-module.exports = { hitungPeriode, sinkronkanPeriodeAktif };
+module.exports = { hitungPeriode, hitungPeriodeSkkk, sinkronkanPeriodeAktif };

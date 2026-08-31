@@ -18,6 +18,10 @@ export default function AcaraFormPage() {
   const [form, setForm] = useState({
     nama_acara: '', tanggal: '', jenis_kegiatan: '', lokasi: '',
     penyelenggara: '', penanggung_jawab: '', jenis_skkk: '',
+    // Field kepala formulir SKKK BAKA. Diberi nilai bawaan yang paling umum
+    // supaya pengurus tidak perlu menyentuhnya untuk acara biasa.
+    jenis_kepanitiaan: 'Kurang dari 1 tahun', lingkup: 'Universitas',
+    lembaga: '', jabatan_default: 'ANGGOTA UKM',
   });
   const [errors, setErrors] = useState({});
   const [customJenisKegiatan, setCustomJenisKegiatan] = useState('');
@@ -30,22 +34,18 @@ export default function AcaraFormPage() {
         .then((r) => {
           const d = r.data.data;
           const presetOptions = ['Konser', 'Lomba', 'Festival', 'Perayaan', 'Workshop', 'Pentas Seni'];
-          if (presetOptions.includes(d.jenis_kegiatan)) {
-            setForm({
-              nama_acara: d.nama_acara, tanggal: d.tanggal?.split('T')[0] || d.tanggal,
-              jenis_kegiatan: d.jenis_kegiatan, lokasi: d.lokasi,
-              penyelenggara: d.penyelenggara, penanggung_jawab: d.penanggung_jawab,
-              jenis_skkk: d.jenis_skkk,
-            });
-          } else {
-            setForm({
-              nama_acara: d.nama_acara, tanggal: d.tanggal?.split('T')[0] || d.tanggal,
-              jenis_kegiatan: 'Lainnya', lokasi: d.lokasi,
-              penyelenggara: d.penyelenggara, penanggung_jawab: d.penanggung_jawab,
-              jenis_skkk: d.jenis_skkk,
-            });
-            setCustomJenisKegiatan(d.jenis_kegiatan || '');
-          }
+          const isPreset = presetOptions.includes(d.jenis_kegiatan);
+          setForm({
+            nama_acara: d.nama_acara, tanggal: d.tanggal?.split('T')[0] || d.tanggal,
+            jenis_kegiatan: isPreset ? d.jenis_kegiatan : 'Lainnya', lokasi: d.lokasi,
+            penyelenggara: d.penyelenggara, penanggung_jawab: d.penanggung_jawab,
+            jenis_skkk: d.jenis_skkk,
+            jenis_kepanitiaan: d.jenis_kepanitiaan || 'Kurang dari 1 tahun',
+            lingkup: d.lingkup || 'Universitas',
+            lembaga: d.lembaga || '',
+            jabatan_default: d.jabatan_default || 'ANGGOTA UKM',
+          });
+          if (!isPreset) setCustomJenisKegiatan(d.jenis_kegiatan || '');
         })
         .catch(() => toast('Gagal memuat data acara.', 'error'));
     }
@@ -103,7 +103,27 @@ export default function AcaraFormPage() {
   };
 
   const jenisKegiatan = ['Konser', 'Lomba', 'Festival', 'Perayaan', 'Workshop', 'Pentas Seni', 'Lainnya'];
-  const jenisSkkk = ['Bakat & Minat', 'Organisasi & Kepemimpinan', 'Penalaran', 'Pengabdian Masyarakat'];
+  // Nilai-nilai di bawah ini disalin dari form entry SKKK Online BAKA,
+  // supaya isi formulir yang dicetak tidak ditolak karena istilahnya beda.
+  const jenisSkkk = [
+    'Organisasi & Kepemimpinan', 'Pengabdian Masyarakat', 'Partisipasi/Prestasi',
+    // Dua nilai berikut tidak tampak pada dropdown BAKA yang terlihat, tetapi
+    // muncul pada formulir resmi yang sudah tercetak. Dipertahankan agar acara
+    // lama yang memakainya tidak kehilangan nilainya.
+    'Bakat & Minat', 'Penalaran',
+  ];
+  const jenisKepanitiaan = ['1 tahun', 'Kurang dari 1 tahun', 'Pengabdian Masyarakat'];
+  const lingkupAcara = [
+    'Internasional', 'Nasional', 'Regional', 'Surabaya', 'Universitas', 'Fakultas', 'Intern',
+  ];
+  const jabatanSkkk = [
+    'KETUA', 'WAKIL KETUA', 'SEKRETARIS', 'BENDAHARA', 'KOORDINATOR DIVISI',
+    'ANGGOTA KEPANITIAAN', 'PESERTA', 'KETUA UKM', 'SEKRETARIS/BENDAHARA UKM',
+    'KOORDINATOR UKM', 'ANGGOTA UKM', 'PESERTA UKM',
+    // Muncul pada formulir resmi yang sudah tercetak; daftar dropdown BAKA
+    // kemungkinan masih berlanjut di bawah 'PESERTA UKM'.
+    'PENGISI ACARA/PENGMAS 5ASPEK',
+  ];
 
   return (
     <div className="page anim-slide-up">
@@ -208,12 +228,55 @@ export default function AcaraFormPage() {
               label="Jenis SKKK" 
               placeholder="Pilih jenis SKKK..."
               options={jenisSkkk.map((j) => ({ value: j, label: j }))}
-              value={form.jenis_skkk} 
-              onChange={set('jenis_skkk')} 
-              error={errors.jenis_skkk} 
-              className="col-6"
+              value={form.jenis_skkk}
+              onChange={set('jenis_skkk')}
+              error={errors.jenis_skkk}
+              className="col-3"
               icon="🎓"
               required
+            />
+
+            <div className="form-section-divider">Formulir SKKK BAKA</div>
+            <p className="form-section-hint">
+              Field kepala pada Formulir Permohonan SKKK Online (F01-PM05-BAKA-UKP).
+              Biarkan apa adanya untuk acara biasa. Jenis SKKK di atas tercetak sebagai kolom BIDANG.
+            </p>
+
+            <Select
+              id="jenis_kepanitiaan"
+              label="Jenis Kepanitiaan"
+              options={jenisKepanitiaan.map((j) => ({ value: j, label: j }))}
+              value={form.jenis_kepanitiaan}
+              onChange={set('jenis_kepanitiaan')}
+              className="col-2"
+              icon="🗓️"
+            />
+            <Select
+              id="lingkup"
+              label="Lingkup"
+              options={lingkupAcara.map((l) => ({ value: l, label: l }))}
+              value={form.lingkup}
+              onChange={set('lingkup')}
+              className="col-2"
+              icon="🌐"
+            />
+            <Input
+              id="lembaga"
+              label="Lembaga"
+              value={form.lembaga}
+              onChange={set('lembaga')}
+              placeholder="Kosongkan = pakai bawaan sistem"
+              className="col-2"
+              icon="🏛️"
+            />
+            <Select
+              id="jabatan_default"
+              label="Jabatan Peserta"
+              options={jabatanSkkk.map((j) => ({ value: j, label: j }))}
+              value={form.jabatan_default}
+              onChange={set('jabatan_default')}
+              className="col-3"
+              icon="🧑‍🤝‍🧑"
             />
 
             <div className="form-actions-row">

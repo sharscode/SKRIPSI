@@ -34,6 +34,11 @@ async function getPreview(acara_id, excludeMemberIds = []) {
     .query(`
       SELECT
         a.id, a.nrp, a.nama_lengkap, a.bagian_suara,
+        -- Kolom JABATAN, BIDANG, dan DIVISI pada formulir BAKA — di form entry
+        -- BAKA ketiganya memang diisi per peserta. NULL berarti "ikut nilai
+        -- acara"; penggantinya dipilih saat pencetakan, bukan disimpan, supaya
+        -- mengubah nilai acara ikut berlaku bagi peserta yang sudah terdaftar.
+        pa.jabatan, pa.bidang, pa.divisi,
         (SELECT COUNT(*) FROM latihan WHERE acara_id = @acara_id) AS total_latihan,
         ISNULL(
           (SELECT COUNT(*) FROM absensi ab
@@ -53,15 +58,9 @@ async function getPreview(acara_id, excludeMemberIds = []) {
       FROM peserta_acara pa
       JOIN anggota a ON pa.anggota_id = a.id
       WHERE pa.acara_id = @acara_id AND pa.approval_status = 'disetujui'
-      ORDER BY 
-        CASE a.bagian_suara
-          WHEN 'sopran' THEN 1
-          WHEN 'alto' THEN 2
-          WHEN 'tenor' THEN 3
-          WHEN 'bass' THEN 4
-          ELSE 5
-        END,
-        a.nama_lengkap ASC
+      -- Formulir BAKA mengurutkan peserta menurut NRP, bukan bagian suara.
+      -- Pratinjau memakai urutan yang sama supaya cocok dengan PDF-nya.
+      ORDER BY a.nrp ASC
     `);
 
   let participants = participantsResult.recordset;
@@ -83,12 +82,33 @@ async function getPreview(acara_id, excludeMemberIds = []) {
     event: {
       ...event,
       tanggal: event.tanggal?.toISOString?.()?.split('T')[0] || event.tanggal,
+      // Field formulir BAKA. Acara yang dibuat sebelum field ini ada — atau
+      // dibiarkan kosong — tetap harus tercetak lengkap, jadi nilainya
+      // dijatuhkan ke bawaan alih-alih dibiarkan kosong di formulir resmi.
+      lembaga: event.lembaga || await getSetting('skkk_lembaga', 'UP Lainnya'),
+      jenis_kepanitiaan: event.jenis_kepanitiaan || 'Kurang dari 1 tahun',
+      lingkup: event.lingkup || 'Universitas',
+      jabatan_default: event.jabatan_default || 'ANGGOTA UKM',
     },
     participants: participants,
     total_latihan: totalLatihan,
     min_kehadiran: minKehadiran,
     jumlah_memenuhi: participants.filter((p) => p.memenuhi_syarat).length,
   };
+}
+
+/**
+ * Baca satu nilai dari tabel settings.
+ * @param {string} kunci
+ * @param {string} bawaan - dipakai kalau barisnya tidak ada atau kosong
+ * @returns {Promise<string>}
+ */
+async function getSetting(kunci, bawaan) {
+  const pool = await getPool();
+  const result = await pool.request()
+    .input('key', sql.VarChar, kunci)
+    .query('SELECT setting_value FROM settings WHERE setting_key = @key');
+  return result.recordset[0]?.setting_value || bawaan;
 }
 
 /**
