@@ -30,6 +30,8 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
   List<LatihanModel> _latihan = [];
   List<PartiturModel> _partiturList = [];
   bool _loading = true;
+  /// Evaluasi kegiatan, hanya terisi bila admin membukanya untuk anggota.
+  Map<String, dynamic>? _evaluasi;
   String? _myStatus;       // approval_status for current user
   int? _myPesertaId;
   bool _registering = false;
@@ -112,6 +114,17 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
     if (partiturData['success'] == true) {
       final list = (partiturData['data'] as List<dynamic>? ?? []);
       _partiturList = list.map((e) => PartiturModel.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    }
+
+    // Evaluasi hanya terisi bila acara sudah selesai dan admin membukanya
+    // untuk anggota. Kegagalan di sini tidak boleh menggagalkan seluruh halaman.
+    try {
+      final ev = await _api.get('/acara-evaluasi/$acaraId');
+      _evaluasi = ev['success'] == true && ev['data'] != null
+          ? Map<String, dynamic>.from(ev['data'] as Map)
+          : null;
+    } catch (_) {
+      _evaluasi = null;
     }
 
     setState(() => _loading = false);
@@ -282,6 +295,10 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                       ),
+                    ],
+                    if (_evaluasi != null) ...[
+                      const Divider(height: 24),
+                      _kartuEvaluasi(),
                     ],
                   ],
                 ),
@@ -590,6 +607,46 @@ class _AcaraDetailScreenState extends State<AcaraDetailScreen>
           namaAcara: widget.acara.namaAcara,
         );
       },
+    );
+  }
+
+  /// Evaluasi kegiatan dari pengurus. Hanya muncul bila dibuka untuk anggota;
+  /// server sudah menyaring sehingga kendala dan saran internal tidak terkirim.
+  Widget _kartuEvaluasi() {
+    final ev = _evaluasi!;
+    final skor = ev['skor'];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.rate_review_outlined, size: 16, color: AppColors.primary400),
+            const SizedBox(width: 8),
+            const Text(
+              'Evaluasi Kegiatan',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.neutral800),
+            ),
+            const Spacer(),
+            if (skor != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.successLight,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  ' / 5',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.success),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          ev['catatan']?.toString() ?? '',
+          style: const TextStyle(fontSize: 13, color: AppColors.neutral600, height: 1.5),
+        ),
+      ],
     );
   }
 

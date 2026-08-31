@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/latihan_provider.dart';
+import '../../providers/acara_provider.dart';
+import '../../config/routes.dart';
 import '../../models/notification_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/shared_widgets.dart';
@@ -23,6 +25,20 @@ class _NotificationScreenState extends State<NotificationScreen> {
       provider.updateRehearsals(rehearsals);
       provider.fetchNotifications();
     });
+  }
+
+  /// Tandai notifikasi terbaca, lalu buka acara terkait bila ada.
+  /// Notifikasi acara membawa acaraId, jadi sentuhan bisa langsung mengantar
+  /// anggota ke halaman acaranya, bukan berhenti sebagai pemberitahuan.
+  void _bukaNotifikasi(NotificationModel notif, NotificationProvider provider) {
+    provider.markRead(notif.id);
+    if (notif.acaraId == null) return;
+
+    final daftar = context.read<AcaraProvider>().acaraList;
+    final idx = daftar.indexWhere((a) => a.id == notif.acaraId);
+    if (idx == -1) return;
+
+    Navigator.pushNamed(context, AppRoutes.eventDetail, arguments: daftar[idx]);
   }
 
   @override
@@ -69,7 +85,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (_, i) => _NotifCard(
                       notif: notifications[i],
-                      onTap: () => provider.markRead(notifications[i].id),
+                      onTap: () => _bukaNotifikasi(notifications[i], provider),
                     ),
                   ),
                 ),
