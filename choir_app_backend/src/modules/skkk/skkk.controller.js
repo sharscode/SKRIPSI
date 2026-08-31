@@ -19,4 +19,18 @@ async function download(req, res) {
     doc.pipe(res);
   } catch (err) { sendError(res, err.message, err.statusCode || 500); }
 }
-module.exports = { preview, download };
+async function belumDiajukan(req, res) {
+  try {
+    sendSuccess(res, 'Daftar acara belum diajukan SKKK berhasil diambil.', await svc.getBelumDiajukan());
+  } catch (err) { sendError(res, err.message, err.statusCode || 500); }
+}
+
+async function setDiajukan(req, res) {
+  try {
+    const sudah = req.body.diajukan !== false;
+    await svc.setDiajukan(+req.params.acara_id, sudah, req.user.id);
+    sendSuccess(res, sudah ? 'SKKK ditandai sudah diajukan.' : 'Penandaan pengajuan SKKK dibatalkan.');
+  } catch (err) { sendError(res, err.message, err.statusCode || 500); }
+}
+
+module.exports = { preview, download, belumDiajukan, setDiajukan };

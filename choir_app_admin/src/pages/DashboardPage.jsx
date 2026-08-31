@@ -50,6 +50,8 @@ export default function DashboardPage() {
   const [totalAnggota, setTotalAnggota] = useState(0);
   // Acara yang sudah selesai tapi evaluasinya belum ditulis.
   const [belumEval, setBelumEval] = useState([]);
+  // Acara selesai yang SKKK-nya belum diajukan ke BAKA.
+  const [belumSkkk, setBelumSkkk] = useState([]);
 
   useEffect(() => {
     Promise.all([
@@ -60,8 +62,10 @@ export default function DashboardPage() {
       api.get('/settings/active-periode'),
       api.get('/settings/periodes'),
       api.get('/acara-evaluasi/belum-dievaluasi'),
-    ]).then(([a, ac, l, aukm, s, p, be]) => {
+      api.get('/skkk/belum-diajukan'),
+    ]).then(([a, ac, l, aukm, s, p, be, bs]) => {
       setBelumEval(be.data.data || []);
+      setBelumSkkk(bs.data.data?.acara || []);
       const activePeriode = s.data.data?.periode || '2025/2026';
       const totAnggota = a.data.data.pagination?.total ?? a.data.data.length;
       
@@ -189,6 +193,36 @@ export default function DashboardPage() {
           </ul>
           {belumEval.length > 4 && (
             <p className="dash-eval-alert-more">dan {belumEval.length - 4} acara lainnya</p>
+          )}
+        </div>
+      )}
+
+      {/* Acara selesai yang SKKK-nya belum diajukan ke BAKA */}
+      {!loading && belumSkkk.length > 0 && (
+        <div className="dash-eval-alert dash-skkk-alert">
+          <div className="dash-eval-alert-head">
+            <span className="dash-eval-alert-icon">📤</span>
+            <div>
+              <p className="dash-eval-alert-title">
+                {belumSkkk.length} acara siap diajukan SKKK
+              </p>
+              <p className="dash-eval-alert-sub">
+                Sudah ada anggota yang memenuhi syarat kehadiran, tapi pengajuannya belum ditandai.
+              </p>
+            </div>
+          </div>
+          <ul className="dash-eval-alert-list">
+            {belumSkkk.slice(0, 4).map((e) => (
+              <li key={e.id}>
+                <button type="button" onClick={() => navigate('/skkk')}>
+                  {e.nama_acara}
+                  <span>{e.jumlah_memenuhi} anggota memenuhi syarat</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {belumSkkk.length > 4 && (
+            <p className="dash-eval-alert-more">dan {belumSkkk.length - 4} acara lainnya</p>
           )}
         </div>
       )}

@@ -70,6 +70,15 @@ async function getPreview(acara_id, excludeMemberIds = []) {
     participants = participants.filter(p => !excludeSet.has(p.id));
   }
 
+  // 4. Nilai kelayakan terhadap ambang kehadiran minimum.
+  // Tanpa ini sistem hanya menyajikan angka persentase dan pengurus masih
+  // harus memilah sendiri siapa yang layak diajukan — titik di mana orang lupa.
+  const minKehadiran = await getMinKehadiran();
+  participants = participants.map((p) => ({
+    ...p,
+    memenuhi_syarat: Number(p.persentase) >= minKehadiran,
+  }));
+
   return {
     event: {
       ...event,
@@ -77,7 +86,22 @@ async function getPreview(acara_id, excludeMemberIds = []) {
     },
     participants: participants,
     total_latihan: totalLatihan,
+    min_kehadiran: minKehadiran,
+    jumlah_memenuhi: participants.filter((p) => p.memenuhi_syarat).length,
   };
+}
+
+/**
+ * Ambang kehadiran minimum (persen) agar seorang anggota layak diajukan SKKK.
+ * Disimpan di settings supaya bisa diubah tanpa menyentuh kode.
+ * @returns {Promise<number>}
+ */
+async function getMinKehadiran() {
+  const pool = await getPool();
+  const result = await pool.request()
+    .query("SELECT setting_value FROM settings WHERE setting_key = 'min_kehadiran_skkk'");
+  const nilai = Number(result.recordset[0]?.setting_value);
+  return Number.isFinite(nilai) ? nilai : 75;
 }
 
 /**
@@ -88,4 +112,66 @@ async function generatePdf(acara_id, excludeMemberIds = []) {
   return generateSkkkPdf(data);
 }
 
-module.exports = { getPreview, generatePdf };
+/**
+ * Acara selesai yang sudah punya anggota memenuhi syarat SKKK
+ * tetapi pengajuannya belum ditandai.
+ *
+ * Menjawab keluhan utama dari BAKA: pengurus sering lupa mengajukan SKKK
+ * sehingga staf BAKA yang harus menagih. Sistem sudah memegang data
+ * kehadiran, jadi seharusnya sistem yang mengingatkan, bukan sebaliknya.
+ */
+async function getBelumDiajukan() {
+  const pool = await getPool();
+  const minKehadiran = await getMinKehadiran();
+
+  const result = await pool.request()
+    .input('min', sql.Decimal(5, 1), minKehadiran)
+    .query(`
+      SELECT
+        a.id, a.nama_acara, a.tanggal, a.jenis_kegiatan, a.jenis_skkk,
+        stat.jumlah_memenuhi
+      FROM acara a
+      CROSS APPLY (
+        SELECT COUNT(*) AS jumlah_memenuhi
+        FROM peserta_acara pa
+        WHERE pa.acara_id = a.id
+          AND pa.approval_status = 'disetujui'
+          AND (
+            SELECT CASE WHEN COUNT(l.id) = 0 THEN 0
+                        ELSE ROUND(SUM(CASE WHEN ab.status = 'hadir' THEN 1.0 ELSE 0 END)
+                                   * 100.0 / COUNT(l.id), 1)
+                   END
+            FROM latihan l
+            LEFT JOIN absensi ab ON ab.latihan_id = l.id AND ab.anggota_id = pa.anggota_id
+            WHERE l.acara_id = a.id
+          ) >= @min
+      ) AS stat
+      WHERE a.status = 'selesai'
+        AND a.skkk_diajukan_at IS NULL
+        AND stat.jumlah_memenuhi > 0
+      ORDER BY a.tanggal DESC
+    `);
+
+  return { min_kehadiran: minKehadiran, acara: result.recordset };
+}
+
+/**
+ * Tandai SKKK sebuah acara sudah diajukan ke BAKA (atau batalkan penandaan).
+ */
+async function setDiajukan(acara_id, sudah, adminId) {
+  const pool = await getPool();
+  const result = await pool.request()
+    .input('id', sql.Int, acara_id)
+    .input('by', sql.Int, sudah ? adminId : null)
+    .query(`
+      UPDATE acara
+      SET skkk_diajukan_at = ${sudah ? 'GETDATE()' : 'NULL'}, skkk_diajukan_by = @by
+      WHERE id = @id
+    `);
+
+  if (result.rowsAffected[0] === 0) {
+    throw { statusCode: 404, message: 'Acara tidak ditemukan.' };
+  }
+}
+
+module.exports = { getPreview, generatePdf, getBelumDiajukan, setDiajukan, getMinKehadiran };

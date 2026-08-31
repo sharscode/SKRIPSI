@@ -15,6 +15,7 @@ export default function SkkkPage() {
   const [loading, setLoading] = useState(false);
   const [downloading, setDl]  = useState(false);
   const [excludedIds, setExcludedIds] = useState([]);
+  const [menandai, setMenandai] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -52,6 +53,22 @@ export default function SkkkPage() {
     } else {
       setExcludedIds([]);
     }
+  };
+
+  /**
+   * Tandai SKKK acara ini sudah diajukan ke BAKA, atau batalkan penandaannya.
+   * Selama belum ditandai, acara ini tetap muncul di pengingat Dashboard.
+   */
+  const toggleDiajukan = async () => {
+    const sudah = !!preview?.event?.skkk_diajukan_at;
+    setMenandai(true);
+    try {
+      await api.put(`/skkk/${selected}/diajukan`, { diajukan: !sudah });
+      toast(sudah ? 'Penandaan dibatalkan.' : 'SKKK ditandai sudah diajukan.');
+      await loadPreview(selected);
+    } catch (err) {
+      toast(err.response?.data?.message || 'Gagal memperbarui penandaan.', 'error');
+    } finally { setMenandai(false); }
   };
 
   const downloadPdf = async () => {
@@ -93,6 +110,16 @@ export default function SkkkPage() {
               📥 Download PDF
             </Button>
           )}
+          {preview && preview.event.status === 'selesai' && (
+            <Button
+              variant={preview.event.skkk_diajukan_at ? 'secondary' : 'primary'}
+              onClick={toggleDiajukan}
+              loading={menandai}
+              id="btn-tandai-skkk"
+            >
+              {preview.event.skkk_diajukan_at ? '↺ Batalkan Penandaan' : '✓ Tandai Sudah Diajukan'}
+            </Button>
+          )}
         </div>
       </Card>
 
@@ -114,6 +141,8 @@ export default function SkkkPage() {
               <span>📋 {preview.event.jenis_skkk}</span>
               <span>🎵 Total Latihan: <strong>{preview.total_latihan}</strong></span>
               <span>👥 Anggota Terpilih: <strong>{preview.participants.length - excludedIds.length}</strong> dari <strong>{preview.participants.length}</strong></span>
+              <span>✅ Memenuhi syarat (≥{preview.min_kehadiran}%): <strong>{preview.jumlah_memenuhi}</strong></span>
+              <span>📤 Pengajuan: <strong>{preview.event.skkk_diajukan_at ? `Sudah diajukan ${formatDate(preview.event.skkk_diajukan_at)}` : "Belum diajukan"}</strong></span>
             </div>
           </Card>
 
@@ -136,12 +165,13 @@ export default function SkkkPage() {
                   <th>Hadir</th>
                   <th>Total</th>
                   <th>% Kehadiran</th>
+                  <th>Syarat SKKK</th>
                 </tr>
               </thead>
               <tbody>
                 {preview.participants.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center text-muted" style={{ padding: 'var(--sp-8) 0' }}>
+                    <td colSpan={9} className="text-center text-muted" style={{ padding: 'var(--sp-8) 0' }}>
                       Tidak ada peserta yang disetujui.
                     </td>
                   </tr>
@@ -164,12 +194,20 @@ export default function SkkkPage() {
                         <td>{p.hadir}</td>
                         <td>{p.total_latihan}</td>
                         <td>
+                          {/* Warna mengikuti ambang yang berlaku, bukan angka tetap,
+                              supaya tidak bertentangan dengan penilaian syarat. */}
                           <span style={{
                             fontWeight: 700,
-                            color: p.persentase >= 80 ? 'var(--c-success)' : p.persentase >= 50 ? 'var(--c-warning)' : 'var(--c-danger)',
+                            color: p.memenuhi_syarat ? 'var(--c-success)' : 'var(--c-danger)',
                           }}>
                             {p.persentase}%
                           </span>
+                        </td>
+                        <td>
+                          <Badge
+                            status={p.memenuhi_syarat ? 'aktif' : 'ditolak'}
+                            label={p.memenuhi_syarat ? 'Memenuhi' : 'Belum'}
+                          />
                         </td>
                       </tr>
                     );

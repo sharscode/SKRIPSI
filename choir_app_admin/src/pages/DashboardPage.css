@@ -181,3 +181,10 @@
   .dash-eval-alert-list button { transition: none; }
   .dash-eval-alert-list button:hover { transform: none; }
 }
+
+/* Varian pengingat SKKK — dibedakan dari pengingat evaluasi agar
+   dua pengingat yang muncul bersamaan tidak terlihat sebagai satu blok. */
+.dash-skkk-alert {
+  background: var(--c-info-light);
+  border-color: var(--c-info);
+}
