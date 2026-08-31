@@ -116,13 +116,14 @@ export default function AcaraFormPage() {
   const lingkupAcara = [
     'Internasional', 'Nasional', 'Regional', 'Surabaya', 'Universitas', 'Fakultas', 'Intern',
   ];
+  // Daftar lengkap, persis dua belas nilai yang ditawarkan BAKA.
+  // 'PENGISI ACARA/PENGMAS 5ASPEK' sengaja tidak dimasukkan: nilai itu muncul
+  // pada formulir tercetak tahun 2024 tetapi sudah tidak ada lagi di pilihan
+  // BAKA, jadi menawarkannya berarti mengizinkan istilah yang bisa ditolak.
   const jabatanSkkk = [
     'KETUA', 'WAKIL KETUA', 'SEKRETARIS', 'BENDAHARA', 'KOORDINATOR DIVISI',
     'ANGGOTA KEPANITIAAN', 'PESERTA', 'KETUA UKM', 'SEKRETARIS/BENDAHARA UKM',
     'KOORDINATOR UKM', 'ANGGOTA UKM', 'PESERTA UKM',
-    // Muncul pada formulir resmi yang sudah tercetak; daftar dropdown BAKA
-    // kemungkinan masih berlanjut di bawah 'PESERTA UKM'.
-    'PENGISI ACARA/PENGMAS 5ASPEK',
   ];
 
   return (

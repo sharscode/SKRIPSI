@@ -15,11 +15,19 @@ const JENIS_KEPANITIAAN = ['1 tahun', 'Kurang dari 1 tahun', 'Pengabdian Masyara
 const LINGKUP = [
   'Internasional', 'Nasional', 'Regional', 'Surabaya', 'Universitas', 'Fakultas', 'Intern',
 ];
+/** Dua belas nilai yang ditawarkan BAKA — daftarnya lengkap, bukan potongan. */
 const JABATAN = [
   'KETUA', 'WAKIL KETUA', 'SEKRETARIS', 'BENDAHARA', 'KOORDINATOR DIVISI',
   'ANGGOTA KEPANITIAAN', 'PESERTA', 'KETUA UKM', 'SEKRETARIS/BENDAHARA UKM',
-  'KOORDINATOR UKM', 'ANGGOTA UKM', 'PESERTA UKM', 'PENGISI ACARA/PENGMAS 5ASPEK',
+  'KOORDINATOR UKM', 'ANGGOTA UKM', 'PESERTA UKM',
 ];
+
+/**
+ * Nilai lama yang pernah dipakai formulir tercetak tetapi tidak lagi
+ * ditawarkan BAKA. Tidak muncul di dropdown, tetapi tetap diterima agar acara
+ * yang sudah menyimpannya tidak gagal disimpan saat field lain diubah.
+ */
+const JABATAN_LAMA = ['PENGISI ACARA/PENGMAS 5ASPEK'];
 
 const createValidators = [
   body('nama_acara').notEmpty().withMessage('Nama acara wajib diisi.'),
@@ -38,7 +46,7 @@ const createValidators = [
   body('lingkup').optional({ values: 'falsy' })
     .isIn(LINGKUP).withMessage('Lingkup di luar kosakata BAKA.'),
   body('jabatan_default').optional({ values: 'falsy' })
-    .isIn(JABATAN).withMessage('Jabatan di luar kosakata BAKA.'),
+    .isIn([...JABATAN, ...JABATAN_LAMA]).withMessage('Jabatan di luar kosakata BAKA.'),
   body('lembaga').optional({ values: 'falsy' })
     .isLength({ max: 100 }).withMessage('Lembaga maksimal 100 karakter.'),
 ];
@@ -49,5 +57,5 @@ const statusValidators = [
 
 module.exports = {
   createValidators, statusValidators,
-  JENIS_SKKK, JENIS_KEPANITIAAN, LINGKUP, JABATAN,
+  JENIS_SKKK, JENIS_KEPANITIAAN, LINGKUP, JABATAN, JABATAN_LAMA,
 };
