@@ -16,13 +16,31 @@ Please read and follow these steps to automatically setup, configure, and launch
 > The current schema (v2.0) lives in `database/init.sql`.
 
 The database schema and seed data are located in `choir_app_backend/database/init.sql`.
+
+> ⚠️ **`init.sql` alone is not enough.** After it, you MUST run **every** file in
+> `choir_app_backend/database/migrations/` **in filename order** — the alphabetical
+> order is the correct dependency order. Skipping any of them leaves the app missing
+> tables, columns, or settings it reads at runtime (for example `min_kehadiran_skkk`,
+> which the SKKK screening needs). All migrations are idempotent: re-running them on an
+> already-migrated database changes nothing.
+
 1. Verify if MS SQL Server is active on Sharon's local machine.
 2. If she has `mssql` or `sqlcmd` configured, you can execute it automatically:
    ```bash
-   sqlcmd -S 127.0.0.1,1433 -d choir_app -U choir_user -P "Choir123!" -C -i database/init.sql
-   sqlcmd -S 127.0.0.1,1433 -d choir_app -U choir_user -P "Choir123!" -C -i database/migrations/2026-08-20_ukm_acara.sql
+   cd choir_app_backend
+   sqlcmd -S 127.0.0.1,1433 -d choir_app -U choir_user -P "Choir123!" -C -N o -b -i database/init.sql
+   for f in database/migrations/*.sql; do
+     echo "== $f"
+     sqlcmd -S 127.0.0.1,1433 -d choir_app -U choir_user -P "Choir123!" -C -N o -b -i "$f" \
+       || { echo ">>> STOPPED at $f"; break; }
+   done
    ```
-3. Otherwise, guide Sharon to open **SQL Server Management Studio (SSMS)**, create a database named `choir_app`, open `choir_app_backend/database/init.sql`, and execute it (press **F5**). Then run `database/migrations/2026-08-20_ukm_acara.sql` the same way.
+   > `-N o` makes encryption optional. ODBC Driver 18 requires encryption by default and
+   > will refuse the connection with *"Encryption not supported on SQL Server"* on an
+   > instance without TLS configured — `-C` alone is not enough. `-b` makes sqlcmd exit
+   > non-zero on failure; without it, errors pass silently. Do not pipe sqlcmd into
+   > `grep`/`head` inside the loop — that masks its exit code and `break` never fires.
+3. Otherwise, guide Sharon to open **SQL Server Management Studio (SSMS)**, create a database named `choir_app`, open `choir_app_backend/database/init.sql`, and execute it (press **F5**). Then open each file in `database/migrations/` **in filename order** and execute it the same way.
 
 ---
 
